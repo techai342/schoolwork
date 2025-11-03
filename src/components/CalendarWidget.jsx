@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import useCurrentTime from "../hooks/useCurrentTime";
+import useNotification from "../hooks/useNotification";
 
 export default function CalendarWidget() {
   const [showCalendar, setShowCalendar] = useState(false);
@@ -10,6 +12,9 @@ export default function CalendarWidget() {
     return saved ? JSON.parse(saved) : {};
   });
   const [newNote, setNewNote] = useState("");
+
+  const currentTime = useCurrentTime(60000); // updates every 1 minute
+  const { showNotification } = useNotification();
 
   // Save notes in localStorage
   useEffect(() => {
@@ -64,56 +69,36 @@ export default function CalendarWidget() {
     }))
     .sort((a, b) => a.date - b.date);
 
-  // 🛎 Notification permission request
+  // 🕒 Auto Notification for Today / Tomorrow events
   useEffect(() => {
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
-  // 🔔 Function to show notification
-  const showNotification = (title, body) => {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(title, {
-        body,
-        icon: "https://cdn-icons-png.flaticon.com/512/3570/3570048.png", // Study icon
-      });
-    }
-  };
+    Object.keys(notes).forEach((dateStr) => {
+      const eventDate = new Date(dateStr);
+      const note = notes[dateStr];
 
-  // 🕒 Auto-check for events every minute
-  useEffect(() => {
-    const checkEvents = () => {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
+      const isToday =
+        eventDate.getDate() === today.getDate() &&
+        eventDate.getMonth() === today.getMonth() &&
+        eventDate.getFullYear() === today.getFullYear();
 
-      Object.keys(notes).forEach((dateStr) => {
-        const eventDate = new Date(dateStr);
-        const note = notes[dateStr];
+      const isTomorrow =
+        eventDate.getDate() === tomorrow.getDate() &&
+        eventDate.getMonth() === tomorrow.getMonth() &&
+        eventDate.getFullYear() === tomorrow.getFullYear();
 
-        const isToday =
-          eventDate.getDate() === today.getDate() &&
-          eventDate.getMonth() === today.getMonth() &&
-          eventDate.getFullYear() === today.getFullYear();
-
-        const isTomorrow =
-          eventDate.getDate() === tomorrow.getDate() &&
-          eventDate.getMonth() === tomorrow.getMonth() &&
-          eventDate.getFullYear() === tomorrow.getFullYear();
-
-        if (isToday) {
-          showNotification("📅 Today’s Event", `${note} is scheduled for today!`);
-        } else if (isTomorrow) {
-          showNotification("📘 Upcoming Event", `${note} is happening tomorrow!`);
-        }
-      });
-    };
-
-    checkEvents(); // Check immediately
-    const interval = setInterval(checkEvents, 60 * 1000); // Every 1 minute
-    return () => clearInterval(interval);
-  }, [notes]);
+      if (isToday) {
+        showNotification("📅 Today’s Event", `${note} is scheduled for today!`);
+      } else if (isTomorrow) {
+        showNotification(
+          "📘 Upcoming Event",
+          `${note} is happening tomorrow!`
+        );
+      }
+    });
+  }, [currentTime, notes, showNotification]);
 
   const cardBg = isDark
     ? "bg-white/6 border-white/10 text-white"
