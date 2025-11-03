@@ -539,13 +539,13 @@ export default function ChatBot() {
 }
 
 /* ---------- Chat shell (floating card) ---------- */
-/* Desktop: bottom-right stable but moved slightly left */
+/* Desktop: bottom-right stable but moved slightly left and LOWERED to avoid browser search bar */
 /* Mobile: slide-up full-ish (won't overlap the full page) */
 .cf-shell {
   position: fixed;
   z-index: 999998;
   right: 40px; /* Moved left from 20px to 40px */
-  bottom: 86px;
+  bottom: 120px; /* CHANGED: Increased from 86px to 120px to move card lower and avoid browser search bar */
   width: 400px;
   max-width: calc(100% - 32px);
   transition: transform 260ms cubic-bezier(.2,.9,.2,1), bottom 260ms ease, right 260ms ease, width 260ms ease;
@@ -695,22 +695,35 @@ export default function ChatBot() {
 }
 .cf-left-controls { display:flex; gap:8px; align-items:center; }
 
-/* emoji panel */
+/* emoji panel - CHANGED: Only blur background, keep other styling */
 .cf-emoji-btn { font-size:18px; background:transparent; border:none; cursor:pointer; padding:6px; border-radius:8px; }
 .cf-emoji-panel {
   position: absolute;
   left: 8px;
   bottom: 64px;
   width: 280px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,250,0.98));
+  background: rgba(255,255,255,0.15); /* CHANGED: Semi-transparent background */
   border-radius: 10px;
   padding: 10px;
   display:flex; gap:8px; flex-wrap:wrap;
-  box-shadow: 0 8px 32px rgba(9,30,66,0.12);
-  border:1px solid rgba(14,165,233,0.06);
+  backdrop-filter: blur(20px) saturate(180%); /* CHANGED: Only blur effect */
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.2);
   z-index: 100000;
 }
-.cf-emoji-item { padding:8px; border-radius:8px; font-size:16px; background: transparent; border:none; cursor:pointer; }
+.cf-emoji-item { 
+  padding:8px; 
+  border-radius:8px; 
+  font-size:16px; 
+  background: transparent; 
+  border:none; 
+  cursor:pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+.cf-emoji-item:hover {
+  transform: scale(1.15);
+  background: rgba(255,255,255,0.2);
+}
 
 /* mic + send */
 .cf-mic-btn, .cf-send-btn {
@@ -853,6 +866,18 @@ export default function ChatBot() {
   }
   
   .cf-min-inner { color: var(--accent-b); }
+
+  /* Emoji panel in light theme - CHANGED: Only blur background */
+  .cf-emoji-panel {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  
+  .cf-emoji-item:hover {
+    background: rgba(255,255,255,0.3);
+  }
 }
 
 /* Prefer dark scheme: icons white-ish */
@@ -878,7 +903,15 @@ export default function ChatBot() {
     padding: 10px;
   }
   .cf-personality { display: none; } /* hide on small screens */
-  .cf-emoji-panel { left: 5%; bottom: 90px; width: 90%; }
+  .cf-emoji-panel { 
+    left: 5%; 
+    bottom: 90px; 
+    width: 90%; 
+    background: rgba(255,255,255,0.15); /* CHANGED: Consistent blur background on mobile */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
   .cf-input { min-height: 50px; font-size:15px; }
   .cf-min-logo, .cf-floating-btn { right: 12px; bottom: 12px; }
 }
@@ -889,6 +922,10 @@ export default function ChatBot() {
   .cf-avatar-left { width:40px; height:40px; }
   .cf-avatar-right { width:30px; height:30px; }
   .cf-bubble { font-size:13px; padding:8px 10px; }
+  .cf-emoji-panel {
+    width: 92%;
+    left: 4%;
+  }
 }
 
 /* utilities */
