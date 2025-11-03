@@ -1,102 +1,108 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, CheckCircle, Circle } from "lucide-react";
 
 export default function TodoList() {
   const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem("todo_tasks");
+    const saved = localStorage.getItem("tasks");
     return saved ? JSON.parse(saved) : [];
   });
   const [input, setInput] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
 
-  // Save tasks in localStorage
   useEffect(() => {
-    localStorage.setItem("todo_tasks", JSON.stringify(tasks));
+    localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
   const addTask = () => {
     if (!input.trim()) return;
-    const newTask = {
-      id: Date.now(),
-      text: input.trim(),
-      completed: false,
-    };
-    setTasks([...tasks, newTask]);
+    if (editIndex !== null) {
+      const updated = [...tasks];
+      updated[editIndex].text = input;
+      setTasks(updated);
+      setEditIndex(null);
+    } else {
+      setTasks([...tasks, { text: input, done: false }]);
+    }
     setInput("");
   };
 
-  const toggleTask = (id) => {
-    setTasks(
-      tasks.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      )
-    );
+  const toggleDone = (index) => {
+    const updated = [...tasks];
+    updated[index].done = !updated[index].done;
+    setTasks(updated);
   };
 
-  const deleteTask = (id) => {
-    setTasks(tasks.filter((t) => t.id !== id));
+  const deleteTask = (index) => {
+    const updated = tasks.filter((_, i) => i !== index);
+    setTasks(updated);
+  };
+
+  const editTask = (index) => {
+    setInput(tasks[index].text);
+    setEditIndex(index);
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white/70 dark:bg-gray-900/60 backdrop-blur-md shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700">
-      <h2 className="text-2xl font-semibold mb-4 text-center text-blue-600 dark:text-blue-300">
-        📝 To-Do List
-      </h2>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5">
+      <h2 className="text-xl font-bold mb-4 text-center">📝 To-Do List</h2>
 
-      <div className="flex mb-4">
+      {/* Input area */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Add a new task..."
-          className="flex-grow px-3 py-2 rounded-l-lg border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none"
+          placeholder="Enter a new task..."
+          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-900"
         />
         <button
           onClick={addTask}
-          className="px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg"
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all"
         >
-          <Plus size={18} />
+          {editIndex !== null ? "Update" : "Add"}
         </button>
       </div>
 
+      {/* Task list */}
       {tasks.length === 0 ? (
-        <p className="text-gray-500 text-center">No tasks yet! 🌟</p>
+        <p className="text-center text-gray-500 dark:text-gray-400">
+          No tasks yet — start adding some!
+        </p>
       ) : (
-        <ul className="space-y-2">
-          {tasks.map((task) => (
+        <ul className="space-y-3">
+          {tasks.map((task, index) => (
             <li
-              key={task.id}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg ${
-                task.completed
-                  ? "bg-green-100 dark:bg-green-800/40"
-                  : "bg-gray-100 dark:bg-gray-800/40"
-              }`}
+              key={index}
+              className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-lg"
             >
-              <div
-                onClick={() => toggleTask(task.id)}
-                className="flex items-center cursor-pointer space-x-2"
-              >
-                {task.completed ? (
-                  <CheckCircle
-                    size={20}
-                    className="text-green-500 transition-all"
-                  />
-                ) : (
-                  <Circle size={20} className="text-gray-400" />
-                )}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={task.done}
+                  onChange={() => toggleDone(index)}
+                  className="w-5 h-5 accent-blue-500"
+                />
                 <span
-                  className={`text-gray-800 dark:text-gray-100 ${
-                    task.completed ? "line-through opacity-60" : ""
+                  className={`${
+                    task.done ? "line-through text-gray-400" : "text-gray-900 dark:text-white"
                   }`}
                 >
                   {task.text}
                 </span>
               </div>
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash2 size={18} />
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => editTask(index)}
+                  className="text-yellow-500 hover:text-yellow-600 transition-all"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => deleteTask(index)}
+                  className="text-red-500 hover:text-red-600 transition-all"
+                >
+                  ❌
+                </button>
+              </div>
             </li>
           ))}
         </ul>
