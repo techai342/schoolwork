@@ -1,34 +1,41 @@
-import { useState, useEffect } from 'react';
+// src/hooks/useNotification.js
+import { useCallback } from "react";
 
-export function useNotification() {
-  const [permission, setPermission] = useState('default');
-
-  useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
+export default function useNotification() {
+  // play a soft bell sound
+  const playSound = useCallback(() => {
+    try {
+      const audio = new Audio("/src/assets/sounds/bell.mp3"); // your soft bell sound file
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+    } catch (error) {
+      console.warn("🔔 Unable to play sound:", error);
     }
   }, []);
 
-  const requestPermission = async () => {
-    if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
-      return false;
+  // show browser notification with sound
+  const showNotification = useCallback((title, message) => {
+    if (!("Notification" in window)) {
+      alert(`${title}\n${message}`);
+      playSound();
+      return;
     }
 
-    const result = await Notification.requestPermission();
-    setPermission(result);
-    return result === 'granted';
-  };
-
-  const showNotification = (title, options) => {
-    if (permission === 'granted') {
-      new Notification(title, options);
+    if (Notification.permission === "granted") {
+      new Notification(title, {
+        body: message,
+        icon: "https://cdn-icons-png.flaticon.com/512/3570/3570048.png", // optional small bell icon
+      });
+      playSound();
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((perm) => {
+        if (perm === "granted") {
+          new Notification(title, { body: message });
+          playSound();
+        }
+      });
     }
-  };
+  }, [playSound]);
 
-  return {
-    permission,
-    requestPermission,
-    showNotification
-  };
+  return { showNotification, playSound };
 }
