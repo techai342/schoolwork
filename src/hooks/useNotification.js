@@ -5,7 +5,7 @@ export default function useNotification() {
   // play a soft bell sound
   const playSound = useCallback(() => {
     try {
-      const audio = new Audio("/src/assets/sounds/bell.mp3"); // your soft bell sound file
+      const audio = new Audio("/src/assets/sounds/bell1.mp3"); // your soft bell sound file
       audio.volume = 0.5;
       audio.play().catch(() => {});
     } catch (error) {
