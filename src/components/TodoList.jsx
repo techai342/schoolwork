@@ -8,6 +8,20 @@ export default function TodoList() {
   const [input, setInput] = useState("");
   const [editIndex, setEditIndex] = useState(null);
 
+  // theme detection
+  const [theme, setTheme] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("theme") || "light" : "light"
+  );
+
+  useEffect(() => {
+    const watcher = setInterval(() => {
+      setTheme(localStorage.getItem("theme") || "light");
+    }, 400);
+    return () => clearInterval(watcher);
+  }, []);
+
+  const isDark = theme === "dark";
+
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
@@ -32,8 +46,7 @@ export default function TodoList() {
   };
 
   const deleteTask = (index) => {
-    const updated = tasks.filter((_, i) => i !== index);
-    setTasks(updated);
+    setTasks(tasks.filter((_, i) => i !== index));
   };
 
   const editTask = (index) => {
@@ -43,12 +56,13 @@ export default function TodoList() {
 
   return (
     <div
-      className="backdrop-blur-lg bg-white/40 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 
-                 rounded-2xl shadow-xl p-5 transition-all duration-500"
+      className={`backdrop-blur-lg rounded-2xl shadow-xl p-5 transition-all duration-500 border ${
+        isDark
+          ? "bg-gray-900/40 border-gray-700/30 text-white"
+          : "bg-white/40 border-white/30 text-gray-900"
+      }`}
     >
-      <h2 className="text-xl font-bold mb-4 text-center text-gray-900 dark:text-white">
-        📝 To-Do List
-      </h2>
+      <h2 className="text-xl font-bold mb-4 text-center">📝 To-Do List</h2>
 
       {/* Input */}
       <div className="flex flex-col sm:flex-row gap-2 mb-4">
@@ -57,9 +71,11 @@ export default function TodoList() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Enter a new task..."
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg 
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/60 dark:bg-gray-800/50 
-                     text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+          className={`flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border ${
+            isDark
+              ? "bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
+              : "bg-white/60 border-gray-300 text-gray-900 placeholder-gray-500"
+          }`}
         />
         <button
           onClick={addTask}
@@ -71,7 +87,7 @@ export default function TodoList() {
 
       {/* Task list */}
       {tasks.length === 0 ? (
-        <p className="text-center text-gray-600 dark:text-gray-400">
+        <p className={isDark ? "text-gray-400 text-center" : "text-gray-600 text-center"}>
           No tasks yet — start adding some!
         </p>
       ) : (
@@ -79,8 +95,11 @@ export default function TodoList() {
           {tasks.map((task, index) => (
             <li
               key={index}
-              className="flex items-center justify-between bg-white/40 dark:bg-gray-800/50 
-                         backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 dark:border-gray-700/20"
+              className={`flex items-center justify-between backdrop-blur-md px-4 py-2 rounded-lg border ${
+                isDark
+                  ? "bg-gray-800/50 border-gray-700/20"
+                  : "bg-white/40 border-white/20"
+              }`}
             >
               <div className="flex items-center gap-2">
                 <input
@@ -93,7 +112,9 @@ export default function TodoList() {
                   className={`${
                     task.done
                       ? "line-through text-gray-400"
-                      : "text-gray-900 dark:text-white"
+                      : isDark
+                      ? "text-white"
+                      : "text-gray-900"
                   }`}
                 >
                   {task.text}
