@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import useNotification from "../hooks/useNotification";
 
 export default function CurrentReminder() {
   const [time, setTime] = useState(new Date());
   const [currentTask, setCurrentTask] = useState(null);
   const [progress, setProgress] = useState(0);
+  const lastTaskRef = useRef(null);
+  const { showNotification } = useNotification(); // ✅ custom notification hook
 
-  // Schedule
+  // Daily schedule
   const schedule = [
     { time: "5:00 AM – 6:30 AM", activity: "Math Practice" },
     { time: "6:30 AM – 8:00 AM", activity: "Free / Morning Routine" },
@@ -18,7 +21,7 @@ export default function CurrentReminder() {
     { time: "10:30 PM – 5:00 AM", activity: "Sleep / Rest" },
   ];
 
-  // Convert time string → minutes
+  // Convert "hh:mm AM/PM" → minutes
   function timeToMinutes(t) {
     const [raw, period] = t.trim().split(" ");
     const [h, m] = raw.split(":").map(Number);
@@ -27,6 +30,7 @@ export default function CurrentReminder() {
     return hours * 60 + (m || 0);
   }
 
+  // Preprocess schedule
   const processed = schedule.map((item) => {
     const [start, end] = item.time.split("–").map((t) => t.trim());
     return {
@@ -36,7 +40,7 @@ export default function CurrentReminder() {
     };
   });
 
-  // Track current time and progress
+  // Track time + update task
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -45,13 +49,13 @@ export default function CurrentReminder() {
 
       let found = null;
       for (const s of processed) {
-        if (
+        const inRange =
           (s.startMin <= s.endMin &&
             minutes >= s.startMin &&
             minutes < s.endMin) ||
           (s.startMin > s.endMin &&
-            (minutes >= s.startMin || minutes < s.endMin))
-        ) {
+            (minutes >= s.startMin || minutes < s.endMin));
+        if (inRange) {
           found = s;
           const duration =
             s.startMin > s.endMin
@@ -67,10 +71,21 @@ export default function CurrentReminder() {
           break;
         }
       }
+
+      // When task changes → notify
+      if (found && lastTaskRef.current?.activity !== found.activity) {
+        showNotification(
+          "🕒 New Task Started",
+          `It's time for ${found.activity}!`
+        );
+      }
+
       setCurrentTask(found);
-    }, 1000);
+      lastTaskRef.current = found;
+    }, 60000); // check every 1 minute
+
     return () => clearInterval(timer);
-  }, []);
+  }, [processed, showNotification]);
 
   return (
     <div className="reminder-card bounce-in">
@@ -88,7 +103,7 @@ export default function CurrentReminder() {
         </div>
       </div>
 
-      {/* Timeline Graph */}
+      {/* Progress Bar */}
       <div className="timeline">
         <div className="timeline-track"></div>
         <div
@@ -115,14 +130,25 @@ export default function CurrentReminder() {
 
       {/* Notification Button */}
       <div className="notif-row">
-        <button className="notif-btn">
+        <button
+          className="notif-btn"
+          onClick={() => {
+            if ("Notification" in window) {
+              Notification.requestPermission().then(() => {
+                showNotification(
+                  "🔔 Notifications Enabled",
+                  "You'll get alerts for your next study tasks!"
+                );
+              });
+            }
+          }}
+        >
           <i data-lucide="bell" className="w-5 h-5 mr-2"></i>
           Allow Notifications
         </button>
         <p className="notif-status">Notifications On</p>
       </div>
 
-      {/* CSS (compact version) */}
       <style>{`
         .reminder-card {
           background: linear-gradient(135deg, #007aff, #5ac8fa);
@@ -167,8 +193,6 @@ export default function CurrentReminder() {
           box-shadow: 0 0 0 5px rgba(52,199,89,0.25);
           animation: pulse 2s infinite;
         }
-
-        /* Timeline */
         .timeline {
           width: 100%;
           height: 8px;
@@ -176,7 +200,6 @@ export default function CurrentReminder() {
           background: rgba(255,255,255,0.3);
           overflow: hidden;
           margin: 0.8rem 0;
-          position: relative;
         }
         .timeline-progress {
           height: 100%;
@@ -184,15 +207,12 @@ export default function CurrentReminder() {
           transition: width 0.5s linear;
           box-shadow: 0 0 8px rgba(52,199,89,0.5);
         }
-
         .time-left {
           font-size: 0.8rem;
           font-weight: 500;
           opacity: 0.9;
           margin-bottom: 0.8rem;
         }
-
-        /* Notifications */
         .notif-row {
           display: flex;
           justify-content: space-between;
@@ -217,8 +237,6 @@ export default function CurrentReminder() {
           font-size: 0.75rem;
           opacity: 0.9;
         }
-
-        /* Animation */
         @keyframes pulse {
           0% { box-shadow: 0 0 0 0 rgba(52,199,89,0.4); }
           70% { box-shadow: 0 0 0 10px rgba(52,199,89,0); }
