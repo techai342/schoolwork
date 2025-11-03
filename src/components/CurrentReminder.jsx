@@ -6,7 +6,7 @@ export default function CurrentReminder() {
   const [currentTask, setCurrentTask] = useState(null);
   const [progress, setProgress] = useState(0);
   const lastTaskRef = useRef(null);
-  const { showNotification } = useNotification(); // ✅ custom notification hook
+  const { showNotification } = useNotification();
 
   // Daily schedule
   const schedule = [
@@ -40,11 +40,18 @@ export default function CurrentReminder() {
     };
   });
 
-  // Track time + update task
+  // 🔄 Live Time Update (every second)
   useEffect(() => {
-    const timer = setInterval(() => {
+    const tick = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
+
+  // Track task & progress every minute
+  useEffect(() => {
+    const updateTask = () => {
       const now = new Date();
-      setTime(now);
       const minutes = now.getHours() * 60 + now.getMinutes();
 
       let found = null;
@@ -72,18 +79,16 @@ export default function CurrentReminder() {
         }
       }
 
-      // When task changes → notify
       if (found && lastTaskRef.current?.activity !== found.activity) {
-        showNotification(
-          "🕒 New Task Started",
-          `It's time for ${found.activity}!`
-        );
+        showNotification("🕒 New Task Started", `It's time for ${found.activity}!`);
       }
 
       setCurrentTask(found);
       lastTaskRef.current = found;
-    }, 60000); // check every 1 minute
+    };
 
+    updateTask();
+    const timer = setInterval(updateTask, 60000);
     return () => clearInterval(timer);
   }, [processed, showNotification]);
 
@@ -128,27 +133,6 @@ export default function CurrentReminder() {
         </p>
       )}
 
-      {/* Notification Button */}
-      <div className="notif-row">
-        <button
-          className="notif-btn"
-          onClick={() => {
-            if ("Notification" in window) {
-              Notification.requestPermission().then(() => {
-                showNotification(
-                  "🔔 Notifications Enabled",
-                  "You'll get alerts for your next study tasks!"
-                );
-              });
-            }
-          }}
-        >
-          <i data-lucide="bell" className="w-5 h-5 mr-2"></i>
-          Allow Notifications
-        </button>
-        <p className="notif-status">Notifications On</p>
-      </div>
-
       <style>{`
         .reminder-card {
           background: linear-gradient(135deg, #007aff, #5ac8fa);
@@ -166,10 +150,11 @@ export default function CurrentReminder() {
         }
         .time-text {
           opacity: 0.9;
-          font-size: 0.8rem;
+          font-size: 0.85rem;
+          font-weight: 500;
         }
         .title {
-          font-size: 1.2rem;
+          font-size: 1.25rem;
           font-weight: 700;
           margin: 0.2rem 0;
         }
@@ -210,31 +195,6 @@ export default function CurrentReminder() {
         .time-left {
           font-size: 0.8rem;
           font-weight: 500;
-          opacity: 0.9;
-          margin-bottom: 0.8rem;
-        }
-        .notif-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .notif-btn {
-          background: white;
-          color: #007aff;
-          border-radius: 10px;
-          padding: 8px 16px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          box-shadow: 0 3px 10px rgba(0,122,255,0.25);
-          transition: all 0.2s ease;
-        }
-        .notif-btn:active {
-          transform: scale(0.96);
-        }
-        .notif-status {
-          font-size: 0.75rem;
           opacity: 0.9;
         }
         @keyframes pulse {
