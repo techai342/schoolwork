@@ -544,10 +544,10 @@ export default function ChatBot() {
 .cf-shell {
   position: fixed;
   z-index: 999998;
-  right: 35px; /* shifted slightly left so not too tight at right edge */
+  right: 20px;
   bottom: 86px;
   width: 400px;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 32px);
   transition: transform 260ms cubic-bezier(.2,.9,.2,1), bottom 260ms ease, right 260ms ease, width 260ms ease;
   display:flex;
   align-items:flex-end;
@@ -663,55 +663,16 @@ export default function ChatBot() {
 /* BOT bubble: dark glass for legibility on both dark and light backgrounds */
 .cf-bubble-bot {
   background: linear-gradient(180deg, rgba(10,18,30,0.9), rgba(6,12,24,0.9));
-  color: #e8f6ff; /* light text on dark theme */
+  color: #e8f6ff; /* light text */
   border: 1px solid rgba(255,255,255,0.04);
   box-shadow: 0 8px 20px rgba(2,6,20,0.6);
   border-top-left-radius:6px;
 }
 
-/* ensure contrast in light color-scheme: if user has light theme, bot bubble switches to dark text and card becomes light */
+/* ensure contrast in light color-scheme: if user has light theme, bot bubble switches to dark text */
 @media (prefers-color-scheme: light) {
-  .cf-bubble-bot {
-    background: linear-gradient(180deg, #ffffff, #f6f9ff);
-    color: #0a192f; /* dark navy text for readability */
-    border: 1px solid rgba(3,10,33,0.08);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-  }
-
-  .cf-card {
-    background: linear-gradient(180deg, #ffffff, #f9fbff);
-    color: #0a192f;
-  }
-
-  /* header title/subtitle darker for white theme */
-  .cf-title-main { color: #062f5c; } /* deep blue */
-  .cf-title-sub { color: #1e3a8a; }  /* medium blue */
-
-  /* UI icons black in light mode */
-  .cf-ui-icon { color: #000 !important; }
-
-  /* mic & other small controls: subtle border and background for visibility */
-  .cf-mic-btn {
-    background: rgba(0,0,0,0.04);
-    border: 1px solid rgba(0,0,0,0.08);
-  }
-
-  .cf-send-btn {
-    background: linear-gradient(135deg, #0ea5e9, #2563eb);
-    color: white;
-  }
-
-  .cf-input {
-    background: rgba(255,255,255,0.95);
-    color: #0a192f;
-    border: 1px solid rgba(0,0,0,0.08);
-  }
-
-  .cf-personality {
-    background: rgba(255,255,255,0.9);
-    color: #0a192f;
-    border: 1px solid rgba(0,0,0,0.08);
-  }
+  .cf-bubble-bot { background: linear-gradient(180deg, #ffffff, #f1f7ff); color: #052034; border: 1px solid rgba(3,10,33,0.06); }
+  .cf-card { background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,252,255,0.92)); color: #042038; }
 }
 
 /* message time small */
@@ -788,7 +749,7 @@ export default function ChatBot() {
 
 /* ui icon color: adaptive so icons remain visible on dark & light backgrounds */
 .cf-ui-icon {
-  color: #05394a; /* dark-ish blue for light backgrounds (fallback) */
+  color: #05394a; /* dark-ish blue for light backgrounds */
   stroke-width: 1.6;
 }
 
@@ -799,7 +760,7 @@ export default function ChatBot() {
 
 /* if user has light theme, ensure icons visible */
 @media (prefers-color-scheme: light) {
-  .cf-ui-icon { color: #000 !important; }
+  .cf-ui-icon { color: #05394a; }
   .cf-send-btn { color: #fff; }
 }
 
