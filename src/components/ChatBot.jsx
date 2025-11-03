@@ -537,24 +537,24 @@ export default function ChatBot() {
   border-radius: 12px;
   box-shadow: 0 6px 14px rgba(0,0,0,0.25);
 }
-
 /* ---------- Chat shell (floating card) ---------- */
-/* Desktop: Perfect positioning - moved more left and DOWN to avoid top header */
+/* Desktop: Perfect positioning — moved lower and slightly left for visibility */
 .cf-shell {
   position: fixed;
   z-index: 999998;
-  right: 60px; /* Moved more left from edge */
-  bottom: 160px; /* CHANGED: Increased from 140px to 160px to move further down */
-  width: 420px;
+  right: 30px;       /* closer to edge */
+  bottom: 25px;      /* lowered to perfect bottom position */
+  width: 400px;
   max-width: calc(100% - 32px);
   transition: transform 260ms cubic-bezier(.2,.9,.2,1), bottom 260ms ease, right 260ms ease, width 260ms ease;
-  display:flex;
-  align-items:flex-end;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
 }
 
-/* full mode (desktop full size) - FIXED: Proper spacing from top */
+/* Fullscreen Mode (desktop full view) */
 .cf-shell-full {
-  top: 80px; /* CHANGED: Increased from 12px to 80px to avoid top header */
+  top: 40px;   /* space from top header */
   right: 20px;
   left: 20px;
   bottom: 20px;
@@ -565,17 +565,16 @@ export default function ChatBot() {
 .cf-card {
   width: 100%;
   height: 560px;
-  display:flex;
-  flex-direction:column;
-  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(10,18,30,0.76), rgba(6,12,24,0.72));
+  background: linear-gradient(180deg, rgba(10,18,30,0.82), rgba(6,12,24,0.75));
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
-
 /* Header - Black theme for both PC and Mobile */
 .cf-header {
   display:flex;
