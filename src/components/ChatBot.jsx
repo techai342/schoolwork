@@ -539,14 +539,14 @@ export default function ChatBot() {
 }
 
 /* ---------- Chat shell (floating card) ---------- */
-/* Desktop: bottom-right stable but moved slightly left and LOWERED to avoid browser search bar */
+/* Desktop: bottom-right stable but moved MORE left and LOWERED to avoid browser search bar */
 /* Mobile: slide-up full-ish (won't overlap the full page) */
 .cf-shell {
   position: fixed;
   z-index: 999998;
-  right: 40px; /* Moved left from 20px to 40px */
-  bottom: 120px; /* CHANGED: Increased from 86px to 120px to move card lower and avoid browser search bar */
-  width: 400px;
+  right: 60px; /* CHANGED: Increased from 40px to 60px to move more left */
+  bottom: 140px; /* CHANGED: Increased from 120px to 140px to move more down */
+  width: 420px; /* CHANGED: Increased from 400px to 420px for slightly larger on PC */
   max-width: calc(100% - 32px);
   transition: transform 260ms cubic-bezier(.2,.9,.2,1), bottom 260ms ease, right 260ms ease, width 260ms ease;
   display:flex;
@@ -577,33 +577,45 @@ export default function ChatBot() {
   -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 
-/* Header */
+/* Header - CHANGED: Black theme for both PC and Mobile */
 .cf-header {
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:8px;
   padding:12px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(180deg, #1a1a1a, #000000) !important; /* CHANGED: Pure black theme */
+  color: #ffffff !important;
 }
+
 .cf-header-left { display:flex; gap:10px; align-items:center; }
 .cf-avatar-left {
   width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-  border: 1px solid rgba(255,255,255,0.04);
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .cf-avatar-right { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
 
-.cf-title-main { color: #cfeeff; font-weight:700; font-size:15px; }
-.cf-title-sub { color: rgba(200,230,255,0.8); font-size:12px; opacity:0.95; }
+.cf-title-main { 
+  color: #ffffff !important; /* CHANGED: White text for black header */
+  font-weight:700; 
+  font-size:15px; 
+}
+.cf-title-sub { 
+  color: rgba(255,255,255,0.8) !important; /* CHANGED: Light gray for subtitle */
+  font-size:12px; 
+  opacity:0.95; 
+}
 
 /* header actions area */
 .cf-header-actions { display:flex; gap:8px; align-items:center; }
 .cf-personality {
-  padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  color: #dff4ff;
+  padding:6px 8px; 
+  border-radius:8px; 
+  border:1px solid rgba(255,255,255,0.2);
+  background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)) !important;
+  color: #ffffff !important; /* CHANGED: White text */
   font-size:13px;
 }
 
@@ -612,15 +624,28 @@ export default function ChatBot() {
   display:inline-flex; align-items:center; justify-content:center;
   padding:6px; border-radius:8px; background:transparent; border:none; cursor:pointer;
   transition: background 180ms ease, transform 120ms ease;
+  color: #ffffff !important; /* CHANGED: White icons */
 }
-.cf-icon-btn:hover { transform: translateY(-2px); }
-.cf-icon-btn.cf-close { background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); }
+.cf-icon-btn:hover { 
+  transform: translateY(-2px); 
+  background: rgba(255,255,255,0.1) !important;
+}
+.cf-icon-btn.cf-close { 
+  background: rgba(255,255,255,0.1) !important; 
+  border:1px solid rgba(255,255,255,0.2);
+}
 
 /* clear button slightly visible */
-.cf-icon-btn.cf-clear { background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); }
+.cf-icon-btn.cf-clear { 
+  background: rgba(255,255,255,0.1) !important; 
+  border:1px solid rgba(255,255,255,0.2);
+}
 
 /* active indicator for toggles */
-.cf-active { box-shadow: 0 6px 18px rgba(14,165,233,0.12); background: linear-gradient(135deg, rgba(6,182,212,0.06), rgba(59,130,246,0.04)); }
+.cf-active { 
+  box-shadow: 0 6px 18px rgba(14,165,233,0.3); 
+  background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(59,130,246,0.15)) !important; 
+}
 
 /* ---------- Body & messages ---------- */
 .cf-body {
@@ -770,22 +795,28 @@ export default function ChatBot() {
     color: #1a1a1a;
   }
 
-  /* Header text - dark and readable */
+  /* Header - STILL BLACK THEME in light mode */
+  .cf-header {
+    background: linear-gradient(180deg, #1a1a1a, #000000) !important;
+    color: #ffffff !important;
+  }
+
   .cf-title-main { 
-    color: #1a365d; /* Dark blue for good contrast */
-    font-weight: 700;
+    color: #ffffff !important;
   }
   
   .cf-title-sub { 
-    color: #2d3748; /* Dark gray for subtitle */
-    opacity: 0.9;
+    color: rgba(255,255,255,0.8) !important;
   }
 
-  /* Personality selector - dark text */
   .cf-personality {
-    color: #2d3748;
-    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(250,250,250,0.9));
-    border: 1px solid rgba(0,0,0,0.1);
+    background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .cf-icon-btn {
+    color: #ffffff !important;
   }
 
   /* BOT bubble - light background with DARK TEXT for readability */
@@ -822,11 +853,11 @@ export default function ChatBot() {
 
   /* Header buttons styling */
   .cf-icon-btn {
-    color: #2d3748;
+    color: #ffffff !important; /* White icons on black header */
   }
   
   .cf-icon-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(255,255,255,0.1) !important;
   }
 
   /* Body background */
