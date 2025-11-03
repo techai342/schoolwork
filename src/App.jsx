@@ -15,6 +15,7 @@ import PerformanceSummary from "./components/PerformanceSummary";
 import FloatingActionButton from "./components/FloatingActionButton";
 import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
+import TodoList from "./components/TodoList"; // ✅ Added To-Do List import
 import "./index.css";
 
 export default function App() {
@@ -32,6 +33,9 @@ export default function App() {
           <ChatBot />
           <DashboardOverview />
           <MotivationBooster />
+
+          {/* ✅ Added To-Do List Section */}
+          <TodoList />
 
           {/* --- Daily Tracker + Notifier side by side on large screens --- */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
