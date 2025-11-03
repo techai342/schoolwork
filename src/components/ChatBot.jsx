@@ -1,16 +1,47 @@
-import React, { useState } from "react";
-import { Send, MessageCircle } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, SendHorizontal, Mic, Bot, User } from "lucide-react";
 
 export default function ChatBot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [open, setOpen] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const chatEndRef = useRef(null);
 
+  // Auto scroll bottom
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  
+  useEffect(scrollToBottom, [messages]);
+
+  // Voice Input Feature
+  const startVoice = () => {
+    const SpeechRec =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      alert("Voice input not supported in this browser.");
+      return;
+    }
+
+    const rec = new SpeechRec();
+    rec.lang = "en-US";
+    rec.start();
+
+    rec.onresult = (e) => {
+      setInput(e.results[0][0].transcript);
+    };
+  };
+
+  // Send message function
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Show user msg
-    setMessages((prev) => [...prev, { sender: "user", text: input }]);
+    const userMsg = { sender: "user", text: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+
+    setTyping(true);
 
     try {
       const res = await fetch(
@@ -18,173 +49,219 @@ export default function ChatBot() {
           input
         )}`
       );
-      const data = await res.json();
+      const json = await res.json();
+      const botText = json.result;
 
-      const reply = data.result || "⚠️ No response";
-      setMessages((prev) => [...prev, { sender: "bot", text: reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: botText },
+      ]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { sender: "bot", text: "API Error ❌ Try again" }
+        { sender: "bot", text: "⚠ Error: API not responding" },
       ]);
     }
+    setTyping(false);
+  };
 
-    setInput("");
+  // Enter key support
+  const handleKey = (e) => {
+    if (e.key === "Enter") sendMessage();
   };
 
   return (
-    <div className="chatbot-container">
-      {/* Floating Button */}
+    <>
+
+      {/* Toggle Button */}
       {!open && (
         <button
           className="chat-button"
           onClick={() => setOpen(true)}
         >
-          <MessageCircle size={26} />
+          <MessageCircle size={30} />
+
+          {messages.length > 0 && messages[messages.length - 1].sender === "bot" && (
+            <span className="notif-dot"></span>
+          )}
         </button>
       )}
 
       {/* Chat Window */}
       {open && (
-        <div className="chat-box glassmorphism">
+        <div className="chat-box">
+
+          {/* Header */}
           <div className="chat-header">
-            <span>🤖 Study AI Assistant</span>
+            <span>🤖 AI Study Helper</span>
             <button onClick={() => setOpen(false)}>✖</button>
           </div>
 
+          {/* Chat Body */}
           <div className="chat-body">
-            {messages.map((msg, i) => (
+            {messages.map((msg, index) => (
               <p
-                key={i}
-                className={`msg ${
-                  msg.sender === "user" ? "user-msg" : "bot-msg"
+                key={index}
+                className={`chat-msg ${
+                  msg.sender === "user" ? "msg-user" : "msg-bot"
                 }`}
               >
+                {msg.sender === "user" ? <User size={16} /> : <Bot size={16} />}
                 {msg.text}
               </p>
             ))}
+
+            {typing && (
+              <p className="msg-bot typing">• • • typing...</p>
+            )}
+            
+            <div ref={chatEndRef}></div>
           </div>
 
-          <div className="chat-input">
+          {/* Input Section */}
+          <div className="chat-input-area">
+            <button className="mic-btn" onClick={startVoice}>
+              <Mic size={20} />
+            </button>
+
             <input
+              placeholder="Ask anything..."
               value={input}
+              onKeyDown={handleKey}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask something..."
+              className="chat-input"
             />
-            <button onClick={sendMessage}>
-              <Send size={18} />
+
+            <button className="send-btn" onClick={sendMessage}>
+              <SendHorizontal size={22} />
             </button>
           </div>
         </div>
       )}
 
-      {/* ✅ Styling */}
+      {/* CSS */}
       <style>{`
         .chat-button {
           position: fixed;
-          bottom: 20px;
-          right: 20px;
-          background: #06b6d4;
+          bottom: 65px;
+          right: 15px;
+          width: 60px;
+          height: 60px;
+          background: #0ea5e9;
           color: white;
           border-radius: 50%;
-          width: 55px;
-          height: 55px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-          animation: bounce 2s infinite;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          z-index: 99999;
         }
 
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
+        .notif-dot {
+          width: 12px;
+          height: 12px;
+          background: red;
+          border-radius: 50%;
+          position: absolute;
+          top: 8px;
+          right: 8px;
         }
 
         .chat-box {
           position: fixed;
-          bottom: 90px;
-          right: 20px;
-          width: 320px;
-          height: 380px;
-          border-radius: 18px;
+          bottom: 85px;
+          right: 10px;
+          width: 90%;
+          max-width: 350px;
+          background: rgba(255,255,255,0.7);
+          backdrop-filter: blur(12px);
+          border-radius: 15px;
+          box-shadow: 0 0 25px rgba(0,0,0,0.3);
+          z-index: 999999;
           display: flex;
           flex-direction: column;
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255,255,255,0.4);
-        }
-
-        .glassmorphism {
-          background: rgba(255,255,255,0.25);
-          backdrop-filter: blur(10px);
         }
 
         .chat-header {
-          padding: 10px;
-          background:#0ea5e9;
+          background: #0284c7;
           color: white;
-          font-weight: 600;
+          padding: 10px;
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          border-radius: 18px 18px 0 0;
+          font-weight: bold;
+          border-radius: 15px 15px 0 0;
         }
 
         .chat-body {
-          flex: 1;
-          padding: 10px;
+          max-height: 260px;
           overflow-y: auto;
+          padding: 10px;
         }
 
-        .msg {
+        .chat-msg {
+          background: white;
           padding: 6px 10px;
-          margin: 6px 0;
           border-radius: 10px;
-          font-size: 14px;
+          font-size: 13px;
+          margin-bottom: 8px;
+          display: inline-flex;
+          gap: 6px;
+          align-items: center;
           max-width: 80%;
         }
 
-        .user-msg {
-          background: #06b6d4;
-          color: white;
-          margin-left: auto;
-          text-align: right;
+        .msg-user {
+          background: #bae6fd;
+          align-self: flex-end;
         }
 
-        .bot-msg {
-          background: #ffffffcc;
-          color: #111;
-          text-align: left;
+        .msg-bot {
+          background: #e9e9eb;
+          align-self: flex-start;
+        }
+
+        .typing {
+          opacity: 0.7;
+          font-style: italic;
+        }
+
+        .chat-input-area {
+          display: flex;
+          gap: 6px;
+          padding: 8px;
         }
 
         .chat-input {
-          display: flex;
-          gap: 5px;
-          padding: 10px;
-        }
-
-        .chat-input input {
           flex: 1;
-          border: 1px solid #ccc;
-          padding: 6px;
-          border-radius: 6px;
+          border: none;
           outline: none;
+          padding: 8px;
+          border-radius: 8px;
+          background: white;
         }
 
-        .chat-input button {
-          background: #06b6d4;
+        .send-btn, .mic-btn {
+          background: #0284c7;
           color: white;
-          padding: 6px 10px;
-          border-radius: 6px;
+          border-radius: 50%;
+          width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        @media(max-width: 500px) {
+        @media(min-width: 768px) {
+          .chat-button {
+            bottom: 25px;
+            right: 25px;
+          }
           .chat-box {
-            width: 90%;
-            right: 5%;
+            bottom: 95px;
           }
         }
       `}</style>
-    </div>
+
+    </>
   );
 }
