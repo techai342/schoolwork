@@ -5,32 +5,29 @@ import { MessageCircle, SendHorizontal, Mic, X, Maximize2, Minimize2 } from "luc
 /**
  * ChatBot.jsx
  *
- * - Full featured glass-style chatbot component
- * - Uses external endpoint: https://www.dark-yasiya-api.site/ai/letmegpt?q=QUERY
- * - Saves messages to localStorage (STORAGE_KEY)
- * - Saves settings to localStorage (SETTINGS_KEY)
- * - Features: personalities, emoji picker, voice input, TTS, unread badge, minimize to logo
- * - Desktop + Mobile responsive
+ * Full-featured glassmorphism chatbot component.
+ * - Bottom-right floating (minimizes to a small logo)
+ * - Mobile: slides up to near-fullscreen (won't overlap main content)
+ * - User bubbles: blue glass, white text
+ * - Bot bubbles: dark glass, white text (contrast-safe)
+ * - Icons: adaptive coloring so mic/send/close are visible on dark & light backgrounds
+ * - Voice input (SpeechRecognition) and TTS (speechSynthesis)
+ * - History saved in localStorage (STORAGE_KEY)
+ * - Settings saved in localStorage (SETTINGS_KEY)
  *
- * How to use:
- * - Copy file to src/components/ChatBot.jsx
- * - Import into your app and render <ChatBot />
- *
- * Note:
- * - SpeechRecognition & SpeechSynthesis require browser support
- * - If you want to change assistant/user avatar or header subtitle, edit constants below
+ * Paste this file at src/components/ChatBot.jsx and import <ChatBot /> into your app.
  */
 
-/* --------------------------- Configuration ---------------------------- */
+/* --------------------------- Config --------------------------- */
 const STORAGE_KEY = "chat_history_v1";
 const SETTINGS_KEY = "chat_settings_v1";
 
-/* Avatars / Header subtitle — change these if you want */
 const ASSISTANT_AVATAR = "🤖";
-const USER_AVATAR = "🙂"; // you asked to show Saqib on right — change emoji if you like
+const USER_AVATAR = "👑"; // Saqib icon on right as requested (change if you want)
+const HEADER_TITLE = "AI Study Coach";
 const HEADER_SUBTITLE = "Saqib’s AI Buddy";
 
-/* Default personalities */
+/* default personalities */
 const DEFAULT_PERSONALITIES = [
   { id: "study", name: "Study Coach", prompt: "[StudyCoach] Answer concisely with tips and next steps:" },
   { id: "friendly", name: "Friendly Buddy", prompt: "[Friendly] Be casual, encouraging, emoji-friendly:" },
@@ -40,25 +37,24 @@ const DEFAULT_PERSONALITIES = [
 
 const EMOJIS = ["✅","🔥","🌊","☕","🌿","💪","✨","📚","🎯","🙂","😌","🎧","🎉","💡","😅","👍","🙏","🧠"];
 
-/* --------------------------- Component ---------------------------- */
+/* --------------------------- Component --------------------------- */
 export default function ChatBot() {
-  /* --------------------------- UI state ---------------------------- */
-  const [open, setOpen] = useState(false);                    // full chat open
-  const [minimized, setMinimized] = useState(false);          // "cut to logo" mode
-  const [full, setFull] = useState(false);                    // fullscreen mode
+  /* UI state */
+  const [open, setOpen] = useState(false);         // full chat visible
+  const [minimized, setMinimized] = useState(false); // minimized to logo
+  const [full, setFull] = useState(false);         // fullscreen mode (on desktop)
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
   const [listening, setListening] = useState(false);
   const [unread, setUnread] = useState(0);
 
-  /* --------------------------- Features state ---------------------------- */
+  /* features/settings */
   const [voiceOutput, setVoiceOutput] = useState(true);
   const [voiceInputSupported, setVoiceInputSupported] = useState(!!(window.SpeechRecognition || window.webkitSpeechRecognition));
   const [selectedPersonality, setSelectedPersonality] = useState(DEFAULT_PERSONALITIES[0].id);
   const [emojiOpen, setEmojiOpen] = useState(false);
 
-  /* load settings lazily from localStorage */
   const [settings, setSettings] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || { voiceOutput: true, personality: DEFAULT_PERSONALITIES[0].id };
@@ -68,11 +64,12 @@ export default function ChatBot() {
   });
 
   /* refs */
-  const bodyRef = useRef(null);       // scroll container
-  const recogRef = useRef(null);      // speech recognition instance
-  const typingTimer = useRef(null);   // for debounce behavior
+  const bodyRef = useRef(null);         // messages container for scroll
+  const inputRef = useRef(null);        // textarea ref (for expand)
+  const recogRef = useRef(null);        // speech recognition instance
+  const focusRef = useRef(null);        // to restore focus after actions
 
-  /* --------------------------- Initialization: load history + settings ---------------------------- */
+  /* --------------------------- Init: load history & settings --------------------------- */
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -80,19 +77,19 @@ export default function ChatBot() {
     } catch {
       setMessages([]);
     }
-    // apply saved settings
     setVoiceOutput(settings.voiceOutput ?? true);
     setSelectedPersonality(settings.personality ?? DEFAULT_PERSONALITIES[0].id);
-    // check voice input support again (some browsers enable later)
     setVoiceInputSupported(!!(window.SpeechRecognition || window.webkitSpeechRecognition));
-    // ensure speech synthesis voices are loaded eventually
+
+    // ensure voices are loaded later
     if ("speechSynthesis" in window) {
-      // some browsers populate voices asynchronously
       window.speechSynthesis.onvoiceschanged = () => {};
     }
-  }, []); // run once
+    // by default show minimized small logo (so it doesn't block)
+    setMinimized(true);
+  }, []); // eslint-disable-line
 
-  /* --------------------------- Persist history to localStorage ---------------------------- */
+  /* --------------------------- Persist history & unread handling --------------------------- */
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
@@ -100,62 +97,57 @@ export default function ChatBot() {
       console.warn("Failed to save chat history", err);
     }
 
-    // Unread handling: increment only if chat is not open and last is a bot message
-    if (!open && !minimized) {
+    // handle unread badge increment: only when not open (and not minimized)
+    if (!open) {
       const last = messages[messages.length - 1];
       if (last && last.sender === "bot") {
-        setUnread((u) => {
-          // keep unread within reasonable bounds
-          const nu = u + 1;
-          return nu > 99 ? 99 : nu;
-        });
+        setUnread((u) => Math.min(99, u + 1));
       }
     } else {
       setUnread(0);
     }
-  }, [messages, open, minimized]);
+  }, [messages, open]);
 
-  /* --------------------------- Persist settings ---------------------------- */
+  /* persist settings */
   useEffect(() => {
-    const s = { voiceOutput, personality: selectedPersonality };
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ voiceOutput, personality: selectedPersonality }));
     } catch (e) {
-      console.warn("Failed to save settings", e);
+      console.warn("Failed to store settings", e);
     }
   }, [voiceOutput, selectedPersonality]);
 
-  /* --------------------------- Auto-scroll when messages change ---------------------------- */
+  /* --------------------------- Auto-scroll when messages change --------------------------- */
   useEffect(() => {
-    // small timeout to ensure new node rendered
+    // small delay so the new DOM is ready
     const t = setTimeout(() => {
       if (bodyRef.current) {
-        bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+        bodyRef.current.scrollTop = bodyRef.current.scrollHeight + 200;
       }
-    }, 60);
+    }, 80);
     return () => clearTimeout(t);
-  }, [messages, typing, listening, full, open, minimized]);
+  }, [messages, typing, listening, open, full]);
 
-  /* --------------------------- Text-to-Speech (TTS) ---------------------------- */
+  /* --------------------------- TTS (Text to Speech) --------------------------- */
   const speakText = (text) => {
     if (!voiceOutput || !("speechSynthesis" in window)) return;
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.rate = 1;
       u.pitch = 1;
-      // pick a voice that matches 'en' if possible
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length) {
+        // prefer english voice if available
         u.voice = voices.find((v) => v.lang && v.lang.startsWith("en")) || voices[0];
       }
-      window.speechSynthesis.cancel(); // stop current
+      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
     } catch (err) {
       console.warn("TTS error", err);
     }
   };
 
-  /* --------------------------- Voice Input (Speech-to-Text) ---------------------------- */
+  /* --------------------------- STT (Speech to Text) start/stop --------------------------- */
   const startVoiceInput = () => {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
@@ -165,8 +157,7 @@ export default function ChatBot() {
     try {
       const rec = new SpeechRec();
       recogRef.current = rec;
-      // default to English; you can change to "ur-PK" if the browser supports it
-      rec.lang = "en-US";
+      rec.lang = "en-US"; // feel free to change to "ur-PK" if available
       rec.interimResults = false;
       rec.maxAlternatives = 1;
       rec.onstart = () => setListening(true);
@@ -179,6 +170,8 @@ export default function ChatBot() {
         const txt = (e.results[0] && e.results[0][0] && e.results[0][0].transcript) || "";
         setInput((prev) => (prev ? prev + " " + txt : txt));
         setListening(false);
+        // restore focus so user can edit
+        inputRef.current?.focus();
       };
       rec.start();
     } catch (err) {
@@ -196,14 +189,20 @@ export default function ChatBot() {
     }
   };
 
-  /* --------------------------- Build query with personality prefix ---------------------------- */
+  /* --------------------------- Utilities: build query & format time --------------------------- */
   const buildQuery = (raw) => {
     const p = DEFAULT_PERSONALITIES.find((pp) => pp.id === selectedPersonality);
     const prefix = p ? p.prompt + " " : "";
     return prefix + raw;
   };
 
-  /* --------------------------- Send message to API ---------------------------- */
+  const shortTime = (iso) => {
+    try {
+      return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch { return ""; }
+  };
+
+  /* --------------------------- Send message to API --------------------------- */
   const sendMessage = async (manualText) => {
     const text = (manualText !== undefined ? manualText : input).trim();
     if (!text) return;
@@ -217,33 +216,29 @@ export default function ChatBot() {
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setEmojiOpen(false);
-
-    // show typing indicator
     setTyping(true);
-    // ensure typing visible for at least a short time for realism
-    const minTypingDelay = new Promise((res) => setTimeout(res, 500));
 
+    // ensure typing visible at least briefly
+    const minTyping = new Promise((res) => setTimeout(res, 500));
+
+    // call external API
     let botReply = "No answer (API error)";
     try {
       const q = buildQuery(text);
       const url = `https://www.dark-yasiya-api.site/ai/letmegpt?q=${encodeURIComponent(q)}`;
-
-      // network call
       const r = await fetch(url, { method: "GET" });
       if (!r.ok) {
-        // non-2xx
         botReply = `⚠️ API returned ${r.status}`;
       } else {
         const json = await r.json();
-        botReply = json?.result ?? "Sorry, no response.";
+        botReply = json?.result ?? "Sorry, I couldn't generate a response.";
       }
     } catch (err) {
       console.error("Chat API error", err);
       botReply = "⚠️ API Error: please try again later.";
     }
 
-    // Wait minimal typing delay before showing answer
-    await minTypingDelay;
+    await minTyping;
     setTyping(false);
 
     const botMsg = {
@@ -254,13 +249,10 @@ export default function ChatBot() {
     };
     setMessages((m) => [...m, botMsg]);
 
-    // speak if enabled
-    if (voiceOutput) {
-      speakText(botReply);
-    }
+    if (voiceOutput) speakText(botReply);
   };
 
-  /* --------------------------- Keyboard: Enter send, Shift+Enter newline ---------------------------- */
+  /* --------------------------- Keyboard: Enter send, Shift+Enter newline --------------------------- */
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -268,111 +260,105 @@ export default function ChatBot() {
     }
   };
 
-  /* --------------------------- Emoji insertion ---------------------------- */
+  /* --------------------------- Emoji insertion --------------------------- */
   const insertEmoji = (emo) => {
-    // insert at end with space
     setInput((v) => (v ? v + " " + emo : emo));
     setEmojiOpen(false);
+    inputRef.current?.focus();
   };
 
-  /* --------------------------- Clear history ---------------------------- */
+  /* --------------------------- Clear history --------------------------- */
   const clearHistory = () => {
     if (!window.confirm("Clear chat history? This cannot be undone.")) return;
     setMessages([]);
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch { /* ignore */ }
+    } catch (_) {}
   };
 
-  /* --------------------------- Toggle behaviors ---------------------------- */
+  /* --------------------------- Open / Close / Minimize --------------------------- */
   const openChat = () => {
     setOpen(true);
     setMinimized(false);
     setUnread(0);
+    // focus input after open
+    setTimeout(() => inputRef.current?.focus(), 120);
   };
 
   const closeChat = () => {
-    // "close" will minimize to floating logo by default
+    // minimize to a small logo instead of fully closing
     setOpen(false);
     setFull(false);
     setMinimized(true);
   };
 
   const toggleOpen = () => {
-    if (open) {
-      // if currently open -> minimize to logo
-      closeChat();
-    } else {
-      openChat();
-    }
+    if (open) closeChat();
+    else openChat();
   };
 
   const toggleFull = () => setFull((f) => !f);
 
-  /* --------------------------- Small util: format time ---------------------------- */
-  const shortTime = (iso) => {
+  /* --------------------------- small helpers --------------------------- */
+  const isMobile = () => {
     try {
-      return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } catch { return ""; }
+      return window.matchMedia && window.matchMedia("(max-width: 720px)").matches;
+    } catch {
+      return false;
+    }
   };
 
-  /* --------------------------- Accessibility helpers ---------------------------- */
-  const a11yLabel = (openState) => (openState ? "Close chat" : "Open chat");
-
-  /* --------------------------- Render ---------------------------- */
+  /* --------------------------- Render --------------------------- */
   return (
     <>
-      {/* -------------------- Minimized floating logo (cut to logo) -------------------- */}
+      {/* ---------- Minimized small logo (when minimized) ---------- */}
       {minimized && !open && (
         <button
           aria-label="Open AI chat"
           onClick={openChat}
-          className="chat-minimized-logo"
+          className="cf-min-logo"
           title="Open chat"
         >
-          {/* small circle logo */}
-          <div className="min-logo-inner">
-            <MessageCircle size={18} />
+          <div className="cf-min-inner" aria-hidden>
+            <MessageCircle size={18} className="cf-ui-icon" />
           </div>
-          {/* unread dot */}
-          {unread > 0 && <span className="min-unread">{unread > 99 ? "99+" : unread}</span>}
+          {unread > 0 && <span className="cf-min-unread">{unread > 99 ? "99+" : unread}</span>}
         </button>
       )}
 
-      {/* When completely closed and not minimized, show standard floating button (initial state) */}
+      {/* ---------- Standard floating button when not minimized & closed ---------- */}
       {!open && !minimized && (
-        <button
-          aria-label="Open AI chat"
-          onClick={openChat}
-          className="chat-min-btn"
-          title="Open chat"
-        >
-          <MessageCircle size={22} />
-          {unread > 0 && <span className="notif-dot">{unread > 9 ? "9+" : unread}</span>}
+        <button className="cf-floating-btn" onClick={openChat} aria-label="Open chat" title="Open chat">
+          <MessageCircle size={22} className="cf-ui-icon" />
+          {unread > 0 && <span className="cf-notif">{unread > 9 ? "9+" : unread}</span>}
         </button>
       )}
 
-      {/* -------------------- Chat window -------------------- */}
+      {/* ---------- Chat window ---------- */}
       {open && (
-        <div className={`chat-shell ${full ? "chat-full" : ""}`} role="dialog" aria-label="AI Chat Assistant">
-          <div className="chat-card">
-
-            {/* ---------------- Header ---------------- */}
-            <div className="chat-header">
-              <div className="header-left">
-                <div className="bot-avatar" aria-hidden>{ASSISTANT_AVATAR}</div>
-                <div className="header-title">
-                  <div className="title-line">AI Study Coach</div>
-                  <div className="subtitle-line">{HEADER_SUBTITLE}</div>
+        <div
+          className={`cf-shell ${full ? "cf-shell-full" : ""}`}
+          role="dialog"
+          aria-label="AI Chat Assistant"
+          data-open={open ? "true" : "false"}
+        >
+          <div className="cf-card" onKeyDown={(e) => { /* keep keyboard inside */ }}>
+            {/* Header */}
+            <div className="cf-header">
+              <div className="cf-header-left">
+                <div className="cf-avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>
+                <div className="cf-title">
+                  <div className="cf-title-main">{HEADER_TITLE}</div>
+                  <div className="cf-title-sub">{HEADER_SUBTITLE}</div>
                 </div>
               </div>
 
-              <div className="header-actions">
-                {/* Personality selector */}
+              <div className="cf-header-actions">
+                {/* personality selector (hidden on small screens) */}
                 <select
                   value={selectedPersonality}
                   onChange={(e) => setSelectedPersonality(e.target.value)}
-                  className="personality-select"
+                  className="cf-personality"
                   aria-label="Choose personality"
                 >
                   {DEFAULT_PERSONALITIES.map((p) => (
@@ -380,312 +366,438 @@ export default function ChatBot() {
                   ))}
                 </select>
 
-                {/* Voice output toggle */}
+                {/* voice output toggle */}
                 <button
-                  title="Toggle voice output"
+                  className={`cf-icon-btn ${voiceOutput ? "cf-active" : ""}`}
                   onClick={() => setVoiceOutput((v) => !v)}
-                  className={`icon-btn ${voiceOutput ? "active" : ""}`}
+                  title="Toggle voice output"
                   aria-pressed={voiceOutput}
                 >
-                  🔊
+                  <span className="cf-icon-text">🔊</span>
                 </button>
 
-                {/* Clear history (top-right fixed and visible) */}
-                <button title="Clear history" onClick={clearHistory} className="icon-btn clear-top" aria-label="Clear chat history">🧹</button>
+                {/* clear history (top-right visible) */}
+                <button className="cf-icon-btn cf-clear" title="Clear history" onClick={clearHistory} aria-label="Clear chat history">🧹</button>
 
-                {/* Fullscreen */}
-                <button onClick={toggleFull} title={full ? "Exit full screen" : "Full screen"} className="icon-btn">
-                  {full ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                {/* toggle fullscreen */}
+                <button className="cf-icon-btn" title={full ? "Exit full screen" : "Full screen"} onClick={toggleFull} aria-label="Toggle full">
+                  {full ? <Minimize2 size={16} className="cf-ui-icon" /> : <Maximize2 size={16} className="cf-ui-icon" />}
                 </button>
 
-                {/* Minimize to logo (close) */}
-                <button onClick={closeChat} title="Minimize to logo" className="icon-btn close-btn" aria-label="Minimize chat">
-                  <X size={16} />
+                {/* minimize to logo */}
+                <button className="cf-icon-btn cf-close" title="Minimize to logo" onClick={closeChat} aria-label="Minimize chat">
+                  <X size={16} className="cf-ui-icon" />
                 </button>
               </div>
             </div>
 
-            {/* ---------------- Body (messages) ---------------- */}
-            <div className="chat-body" ref={bodyRef}>
-              <div className="messages">
+            {/* Body: messages */}
+            <div className="cf-body" ref={bodyRef}>
+              <div className="cf-messages" role="list">
                 {messages.map((m) => (
-                  <div key={m.id} className={`message-row ${m.sender === "user" ? "user-row" : "bot-row"}`}>
-                    {m.sender === "bot" && <div className="avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>}
-                    <div className={`message-bubble ${m.sender === "user" ? "bubble-user" : "bubble-bot"}`}>
-                      <div className="msg-text">{m.text}</div>
-                      <div className="msg-time">{shortTime(m.ts)}</div>
+                  <div key={m.id} className={`cf-message-row ${m.sender === "user" ? "cf-user-row" : "cf-bot-row"}`}>
+                    {m.sender === "bot" && <div className="cf-avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>}
+                    <div className={`cf-bubble ${m.sender === "user" ? "cf-bubble-user" : "cf-bubble-bot"}`}>
+                      <div className="cf-msg-text">{m.text}</div>
+                      <div className="cf-msg-time">{shortTime(m.ts)}</div>
                     </div>
-                    {m.sender === "user" && <div className="avatar-right" aria-hidden>{USER_AVATAR}</div>}
+                    {m.sender === "user" && <div className="cf-avatar-right" aria-hidden>{USER_AVATAR}</div>}
                   </div>
                 ))}
 
                 {/* Typing indicator */}
                 {typing && (
-                  <div className="message-row bot-row">
-                    <div className="avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>
-                    <div className="typing-bubble" aria-hidden>
-                      <span className="dot dot1" />
-                      <span className="dot dot2" />
-                      <span className="dot dot3" />
+                  <div className="cf-message-row cf-bot-row">
+                    <div className="cf-avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>
+                    <div className="cf-typing">
+                      <span className="cf-dot d1" />
+                      <span className="cf-dot d2" />
+                      <span className="cf-dot d3" />
                     </div>
                   </div>
                 )}
 
-                {/* Listening indicator (voice) */}
+                {/* Listening indicator */}
                 {listening && (
-                  <div className="message-row bot-row">
-                    <div className="avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>
-                    <div className="message-bubble bubble-bot">
-                      <div className="msg-text">Listening... say something</div>
-                      <div className="msg-time">●</div>
+                  <div className="cf-message-row cf-bot-row">
+                    <div className="cf-avatar-left" aria-hidden>{ASSISTANT_AVATAR}</div>
+                    <div className="cf-bubble cf-bubble-bot">
+                      <div className="cf-msg-text">Listening... speak now</div>
+                      <div className="cf-msg-time">●</div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* ---------------- Controls (emoji, mic, input, send) ---------------- */}
-            <div className="chat-controls">
-              <div className="left-controls">
+            {/* Controls */}
+            <div className="cf-controls">
+              <div className="cf-left-controls">
                 <div style={{ position: "relative" }}>
-                  <button className="emoji-btn" onClick={() => setEmojiOpen((s) => !s)} aria-label="Open emoji picker">😊</button>
+                  <button className="cf-emoji-btn" onClick={() => setEmojiOpen((s) => !s)} aria-label="Open emoji picker">😊</button>
 
                   {emojiOpen && (
-                    <div className="emoji-panel" role="menu" aria-label="Emoji picker">
+                    <div className="cf-emoji-panel" role="menu" aria-label="Emoji picker">
                       {EMOJIS.map((e) => (
-                        <button key={e} className="emoji-item" onClick={() => insertEmoji(e)}>{e}</button>
+                        <button key={e} className="cf-emoji-item" onClick={() => insertEmoji(e)}>{e}</button>
                       ))}
                     </div>
                   )}
                 </div>
 
                 <button
-                  className={`mic-btn ${listening ? "listening" : ""}`}
+                  className={`cf-mic-btn ${listening ? "cf-listening" : ""}`}
                   onClick={() => (listening ? stopVoiceInput() : startVoiceInput())}
                   aria-pressed={listening}
                   title="Voice input"
                 >
-                  <Mic size={16} />
+                  <Mic size={16} className="cf-ui-icon" />
                 </button>
               </div>
 
               <textarea
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask me anything... (Shift+Enter = newline)"
-                className="chat-input"
+                className="cf-input"
                 rows={1}
                 aria-label="Message input"
               />
 
-              <button className="send-btn" onClick={() => sendMessage()} aria-label="Send message">
-                <SendHorizontal size={16} />
+              <button className="cf-send-btn" onClick={() => sendMessage()} title="Send message" aria-label="Send message">
+                <SendHorizontal size={16} className="cf-ui-icon" />
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ---------------- Styles (internal for portability) ---------------- */}
+      {/* ---------- Styles (internal) ---------- */}
       <style>{`
-/* =============== Container positions =============== */
+/* ---------------- root colors (glass neon) ---------------- */
 :root {
-  --glass-bg-1: rgba(255,255,255,0.55);
-  --glass-bg-2: rgba(245,248,255,0.45);
-  --accent-1: #06b6d4;
-  --accent-2: #3b82f6;
-  --accent-strong: rgba(14,165,233,0.18);
+  --bg-dark: #061221;
+  --accent-a: #06b6d4; /* cyan */
+  --accent-b: #3b82f6; /* blue */
+  --glass-1: rgba(255,255,255,0.06);
+  --glass-2: rgba(255,255,255,0.04);
+  --glass-strong: rgba(255,255,255,0.08);
+  --card-border: rgba(255,255,255,0.06);
+  --shadow: 0 12px 32px rgba(3,10,33,0.6);
 }
 
-/* Floating minimized full-size button (default when app first loads) */
-.chat-min-btn {
+/* ---------- Floating minimized logo (bottom-right) ---------- */
+.cf-min-logo, .cf-floating-btn {
   position: fixed;
-  bottom: 22px;
-  right: 16px;
+  z-index: 999999;
+  right: 18px;
+  bottom: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  box-shadow: 0 10px 30px rgba(6,27,70,0.35);
+}
+
+/* main floating button (when not minimized) */
+.cf-floating-btn {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg,var(--accent-1),var(--accent-2));
-  color: #fff;
-  border: none;
-  box-shadow: 0 10px 30px rgba(8,99,255,0.18);
-  display:flex;align-items:center;justify-content:center;
-  z-index:99999;
-  cursor:pointer;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.06);
+  color: white;
+  display:flex; align-items:center; justify-content:center;
 }
-.chat-min-btn:hover { transform: translateY(-3px); transition: transform 180ms ease; }
 
-/* small README-like minimized logo (cut to logo) */
-.chat-minimized-logo {
-  position: fixed;
-  bottom: 18px;
-  right: 14px;
-  z-index: 99999;
+/* minimized small circular logo */
+.cf-min-logo {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg,#ffffff,#f0f9ff);
-  border: 1px solid rgba(14,165,233,0.08);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow: 0 8px 28px rgba(11,78,181,0.06);
-  cursor:pointer;
-}
-.min-logo-inner { display:flex; align-items:center; justify-content:center; color: #0747a6; }
-.min-unread {
-  position:absolute; top:-6px; right:-6px; background:#ff4d4f; color:white; font-size:11px; padding:3px 6px; border-radius:12px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Chat shell (floating card) */
-.chat-shell {
-  position: fixed;
-  bottom: 86px;
-  right: 18px;
-  z-index: 999999;
-  width: 380px;
-  max-width: calc(100% - 36px);
-  transition: all 220ms ease;
+.cf-min-inner { display:flex; align-items:center; justify-content:center; color: var(--accent-b); }
+.cf-min-logo:hover { transform: translateY(-6px); }
+
+/* unread dot */
+.cf-min-unread, .cf-notif {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
 }
-.chat-full {
-  bottom: 12px;
+
+/* ---------- Chat shell (floating card) ---------- */
+/* Desktop: bottom-right stable
+   Mobile: slide-up full-ish (won't overlap the full page) */
+.cf-shell {
+  position: fixed;
+  z-index: 999998;
+  right: 20px;
+  bottom: 86px;
+  width: 400px;
+  max-width: calc(100% - 32px);
+  transition: transform 260ms cubic-bezier(.2,.9,.2,1), bottom 260ms ease, right 260ms ease, width 260ms ease;
+  display:flex;
+  align-items:flex-end;
+}
+
+/* full mode (desktop full size) */
+.cf-shell-full {
+  top: 12px;
   right: 12px;
   left: 12px;
-  top: 12px;
+  bottom: 12px;
   width: auto;
 }
 
-/* Card itself */
-.chat-card {
+/* Card */
+.cf-card {
+  width: 100%;
+  height: 560px;
   display:flex;
   flex-direction:column;
-  height: 560px;
   border-radius: 14px;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--glass-bg-1), var(--glass-bg-2));
-  border: 1px solid rgba(255,255,255,0.45);
-  box-shadow: 0 12px 40px rgba(11,78,181,0.12);
-  backdrop-filter: blur(12px) saturate(120%);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  background: linear-gradient(180deg, rgba(10,18,30,0.76), rgba(6,12,24,0.72));
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 
 /* Header */
-.chat-header {
+.cf-header {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:10px 12px;
   gap:8px;
-  border-bottom: 1px solid rgba(14,165,233,0.03);
-  background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.22));
+  padding:12px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
 }
-.header-left { display:flex; align-items:center; gap:10px; }
-.bot-avatar {
-  width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-  background: linear-gradient(135deg,#e0f7ff,#dbeafe);
-  box-shadow: 0 8px 22px rgba(59,130,246,0.06);
-  font-size:20px;
+.cf-header-left { display:flex; gap:10px; align-items:center; }
+.cf-avatar-left {
+  width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
 }
-.header-title .title-line { font-weight:700; color:#0747a6; font-size:15px; }
-.header-title .subtitle-line { font-size:12px; color:#2563eb; opacity:0.95; }
+.cf-avatar-right { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
 
-/* Header actions */
-.header-actions { display:flex; align-items:center; gap:6px; }
-.personality-select {
-  padding:6px 8px;border-radius:8px;border:1px solid rgba(15,23,42,0.06); background:rgba(255,255,255,0.7);
+.cf-title-main { color: #cfeeff; font-weight:700; font-size:15px; }
+.cf-title-sub { color: rgba(200,230,255,0.8); font-size:12px; opacity:0.95; }
+
+/* header actions area */
+.cf-header-actions { display:flex; gap:8px; align-items:center; }
+.cf-personality {
+  padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: #dff4ff;
   font-size:13px;
 }
-.icon-btn {
-  padding:6px;border-radius:8px;border:none;background:transparent;cursor:pointer;font-size:14px;
-  display:inline-flex;align-items:center;justify-content:center;
+
+/* icon button (adaptive color) */
+.cf-icon-btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:6px; border-radius:8px; background:transparent; border:none; cursor:pointer;
+  transition: background 180ms ease, transform 120ms ease;
 }
-.icon-btn.active { background: rgba(14,165,233,0.12); }
-.icon-btn.close-btn { background: transparent; }
-.icon-btn.clear-top { /* ensure visible at top right */
-  padding:8px;border-radius:8px; background: rgba(255,255,255,0.6); border:1px solid rgba(14,165,233,0.04);
+.cf-icon-btn:hover { transform: translateY(-2px); }
+.cf-icon-btn.cf-close { background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); }
+
+/* clear button slightly visible */
+.cf-icon-btn.cf-clear { background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03); }
+
+/* active indicator for toggles */
+.cf-active { box-shadow: 0 6px 18px rgba(14,165,233,0.12); background: linear-gradient(135deg, rgba(6,182,212,0.06), rgba(59,130,246,0.04)); }
+
+/* ---------- Body & messages ---------- */
+.cf-body {
+  flex:1;
+  overflow:auto;
+  padding:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
 }
+.cf-messages { display:flex; flex-direction:column; gap:12px; }
 
-/* Body & messages */
-.chat-body { flex:1; overflow:auto; padding:14px; background:
-  linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
-  min-height: 200px;
-}
-.messages { display:flex; flex-direction:column; gap:12px; }
+/* message row alignment */
+.cf-message-row { display:flex; gap:10px; align-items:flex-end; }
+.cf-bot-row { justify-content:flex-start; }
+.cf-user-row { justify-content:flex-end; }
 
-/* Message rows */
-.message-row { display:flex; gap:10px; align-items:flex-end; }
-.bot-row { justify-content:flex-start; }
-.user-row { justify-content:flex-end; }
-
-/* Avatars */
-.avatar-left, .avatar-right { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px; }
-
-/* Message bubble */
-.message-bubble { max-width:78%; padding:10px 12px; border-radius:12px; position:relative; display:flex; flex-direction:column; gap:6px; }
-.bubble-bot { background: linear-gradient(180deg, #ffffff, #f3f8ff); color:#06202a; border:1px solid rgba(14,165,233,0.06); border-top-left-radius:6px; }
-.bubble-user { background: linear-gradient(180deg,var(--accent-1),var(--accent-2)); color:white; border-top-right-radius:6px; box-shadow: 0 8px 24px rgba(14,165,233,0.12); }
-
-/* small time text */
-.msg-time { font-size:11px; opacity:0.6; align-self:flex-end; margin-top:6px; }
-
-/* Typing (WhatsApp-like) */
-.typing-bubble { width:72px; padding:8px 10px; border-radius:12px; background: linear-gradient(180deg,#ffffff,#f3f8ff); display:flex; gap:6px; align-items:center; }
-.typing-bubble .dot { width:8px;height:8px;border-radius:50%; background:var(--accent-1); opacity:0.95; transform: translateY(0); }
-.typing-bubble .dot1 { animation: bounceDot 1s infinite 0s; }
-.typing-bubble .dot2 { animation: bounceDot 1s infinite 0.15s; }
-.typing-bubble .dot3 { animation: bounceDot 1s infinite 0.3s; }
-@keyframes bounceDot {
-  0% { transform: translateY(0); opacity:0.5; }
-  50% { transform: translateY(-6px); opacity:1; }
-  100% { transform: translateY(0); opacity:0.6; }
+/* message bubble base */
+.cf-bubble {
+  max-width:78%;
+  padding:10px 12px;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  word-break: break-word;
+  line-height:1.25;
+  font-size:14px;
 }
 
-/* Controls area */
-.chat-controls { display:flex; align-items:center; gap:8px; padding:10px; border-top:1px solid rgba(14,165,233,0.03); background:linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.35)); position:relative; }
-.left-controls { display:flex; gap:8px; align-items:center; position:relative; }
+/* ---------- Bubble styles: futuristic blue glass (user) & dark glass (bot) ---------- */
 
-/* Emoji panel */
-.emoji-btn { background:transparent;border:none;font-size:18px; padding:6px; cursor:pointer; }
-.emoji-panel { position:absolute; left:6px; top:-140px; background:rgba(255,255,255,0.98); border-radius:10px; padding:10px; display:flex; gap:6px; flex-wrap:wrap; width:260px; box-shadow:0 8px 32px rgba(9,30,66,0.12); border:1px solid rgba(14,165,233,0.06); z-index:100000; }
-.emoji-item { padding:8px;border-radius:8px;background:transparent;border:none;font-size:16px;cursor:pointer; }
-
-/* Input and buttons */
-.chat-input { flex:1; resize:none; padding:10px 12px; border-radius:10px; border:1px solid rgba(2,132,199,0.08); min-height:44px; max-height:140px; overflow:auto; font-size:14px; }
-.send-btn { width:44px;height:44px; border-radius:10px; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); color:white; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.mic-btn { width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#ffffff,#e6f7ff); border:1px solid rgba(14,165,233,0.06); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-.mic-btn.listening { box-shadow: 0 6px 18px rgba(14,165,233,0.18); border:1px solid rgba(59,130,246,0.18); animation: micPulse 1.4s infinite; }
-@keyframes micPulse { 0% { transform: scale(1); } 50% { transform: scale(1.04);} 100% { transform: scale(1); } }
-
-/* notif dot */
-.notif-dot {
-  position:absolute;
-  top:6px; right:8px;
-  background:#ff4d4f;color:white;
-  font-size:11px;padding:2px 6px;border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+/* USER bubble: blue gradient, white text (always high contrast) */
+.cf-bubble-user {
+  background: linear-gradient(180deg, rgba(6,182,212,0.98), rgba(59,130,246,0.98));
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 10px 26px rgba(59,130,246,0.12);
+  border-top-right-radius:6px;
 }
 
-/* responsive behavior */
+/* BOT bubble: dark glass for legibility on both dark and light backgrounds */
+.cf-bubble-bot {
+  background: linear-gradient(180deg, rgba(10,18,30,0.9), rgba(6,12,24,0.9));
+  color: #e8f6ff; /* light text */
+  border: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 8px 20px rgba(2,6,20,0.6);
+  border-top-left-radius:6px;
+}
+
+/* ensure contrast in light color-scheme: if user has light theme, bot bubble switches to dark text */
+@media (prefers-color-scheme: light) {
+  .cf-bubble-bot { background: linear-gradient(180deg, #ffffff, #f1f7ff); color: #052034; border: 1px solid rgba(3,10,33,0.06); }
+  .cf-card { background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,252,255,0.92)); color: #042038; }
+}
+
+/* message time small */
+.cf-msg-time { font-size:11px; color: rgba(200,230,255,0.65); align-self:flex-end; margin-top:6px; }
+
+/* ---------- Typing indicator ---------- */
+.cf-typing {
+  display:flex; gap:8px; align-items:center;
+  padding:8px 12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.02);
+}
+.cf-dot { width:8px; height:8px; border-radius:50%; background: var(--accent-a); opacity:0.95; transform:translateY(0); }
+.d1 { animation: cf-bounce 1s infinite 0s; }
+.d2 { animation: cf-bounce 1s infinite 0.15s; }
+.d3 { animation: cf-bounce 1s infinite 0.3s; }
+@keyframes cf-bounce { 0% { transform: translateY(0); opacity:0.5; } 50% { transform: translateY(-6px); opacity:1;} 100% { transform: translateY(0); opacity:0.6; } }
+
+/* ---------- Controls ---------- */
+.cf-controls {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px;
+  border-top: 1px solid rgba(255,255,255,0.02);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+.cf-left-controls { display:flex; gap:8px; align-items:center; }
+
+/* emoji panel */
+.cf-emoji-btn { font-size:18px; background:transparent; border:none; cursor:pointer; padding:6px; border-radius:8px; }
+.cf-emoji-panel {
+  position: absolute;
+  left: 8px;
+  bottom: 64px;
+  width: 280px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,250,0.98));
+  border-radius: 10px;
+  padding: 10px;
+  display:flex; gap:8px; flex-wrap:wrap;
+  box-shadow: 0 8px 32px rgba(9,30,66,0.12);
+  border:1px solid rgba(14,165,233,0.06);
+  z-index: 100000;
+}
+.cf-emoji-item { padding:8px; border-radius:8px; font-size:16px; background: transparent; border:none; cursor:pointer; }
+
+/* mic + send */
+.cf-mic-btn, .cf-send-btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:10px; border:none; cursor:pointer;
+}
+.cf-mic-btn {
+  width:40px; height:40px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03);
+}
+.cf-mic-btn.cf-listening { box-shadow: 0 10px 26px rgba(6,182,212,0.12); animation: cf-pulse 1.4s infinite; border:1px solid rgba(6,182,212,0.16); }
+@keyframes cf-pulse { 0% { transform: scale(1);} 50% { transform: scale(1.04);} 100% { transform: scale(1);} }
+
+.cf-send-btn {
+  width:44px; height:44px;
+  background: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+  color:white;
+  border-radius:10px;
+}
+
+/* input */
+.cf-input {
+  flex:1;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  min-height:44px; max-height:140px; resize:none; font-size:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: #e6f7ff;
+}
+
+/* ui icon color: adaptive so icons remain visible on dark & light backgrounds */
+.cf-ui-icon {
+  color: #05394a; /* dark-ish blue for light backgrounds */
+  stroke-width: 1.6;
+}
+
+/* prefer dark scheme: icons white-ish */
+@media (prefers-color-scheme: dark) {
+  .cf-ui-icon { color: #ffffff; }
+}
+
+/* if user has light theme, ensure icons visible */
+@media (prefers-color-scheme: light) {
+  .cf-ui-icon { color: #05394a; }
+  .cf-send-btn { color: #fff; }
+}
+
+/* ---------- Responsive: Mobile behavior (slide-up, near-fullscreen) ---------- */
 @media (max-width: 720px) {
-  .chat-shell { right: 8px; left: 8px; bottom: 90px; width: auto; }
-  .chat-card { height: calc(100vh - 140px); }
-  .header-title .title-line { font-size:14px; }
-  .personality-select { display:none; } /* hide on smaller screens for space */
-  .emoji-panel { left:8px; top:auto; bottom:70px; width:90%; left:5%; }
-  .chat-input { font-size:15px; min-height:48px; }
-  .chat-controls { padding:8px; gap:6px; }
-  .chat-min-btn { bottom:14px; right:12px; }
+  /* move chat shell to full width and near-top, sliding up animation */
+  .cf-shell {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: calc(100% - 20px);
+    align-items: stretch;
+  }
+  .cf-card {
+    height: calc(100vh - 120px);
+    border-radius: 12px;
+  }
+  .cf-header {
+    padding: 10px;
+  }
+  .cf-personality { display: none; } /* hide on small screens */
+  .cf-emoji-panel { left: 5%; bottom: 90px; width: 90%; }
+  .cf-input { min-height: 50px; font-size:15px; }
+  .cf-min-logo, .cf-floating-btn { right: 12px; bottom: 12px; }
 }
 
-/* small tweaks for very small screens */
+/* Very small phones */
 @media (max-width: 420px) {
-  .chat-card { border-radius: 10px; }
-  .avatar-left, .avatar-right { width:32px;height:32px; }
-  .message-bubble { padding:8px 10px; }
-  .send-btn { width:40px;height:40px; }
+  .cf-card { border-radius: 8px; }
+  .cf-avatar-left { width:40px; height:40px; }
+  .cf-avatar-right { width:30px; height:30px; }
+  .cf-bubble { font-size:13px; padding:8px 10px; }
 }
+
+/* utilities */
+.hidden { display:none !important; }
       `}</style>
     </>
   );
 }
- 
