@@ -2,6 +2,7 @@ import React from "react";
 import Header from "./components/Header";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
+import CalendarWidget from "./components/CalendarWidget"; 
 import UpdatePrompt from "./components/UpdatePrompt";
 import MotivationBooster from "./components/MotivationBooster";
 import ReminderNotification from "./components/ReminderNotification";
@@ -36,7 +37,7 @@ export default function App() {
 
           {/* ✅ Added To-Do List Section */}
           <TodoList />
-
+          <CalendarWidget />  
           {/* --- Daily Tracker + Notifier side by side on large screens --- */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <DailyGoalTracker />
