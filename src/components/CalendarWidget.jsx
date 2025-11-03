@@ -9,10 +9,14 @@ export default function CalendarWidget() {
   const toggleCalendar = () => setShowCalendar(!showCalendar);
 
   return (
-    <div className="rounded-2xl shadow-lg p-5 mt-6 transition-all duration-300 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <h2 className="text-xl font-bold mb-4 text-center">📅 Study Calendar</h2>
+    <div
+      className="backdrop-blur-lg bg-white/40 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 
+                 rounded-2xl shadow-xl p-5 mt-6 transition-all duration-500"
+    >
+      <h2 className="text-xl font-bold mb-4 text-center text-gray-900 dark:text-white">
+        📅 Study Calendar
+      </h2>
 
-      {/* Calendar Toggle Button */}
       <div className="flex justify-center mb-4">
         <button
           onClick={toggleCalendar}
@@ -22,54 +26,40 @@ export default function CalendarWidget() {
         </button>
       </div>
 
-      {/* Calendar Section */}
       {showCalendar && (
         <div className="flex justify-center">
-          <div
-            className="rounded-xl shadow-sm bg-gray-50 dark:bg-gray-800 p-2 transition-all duration-300"
-          >
+          <div className="rounded-xl shadow-sm bg-white/40 dark:bg-gray-800/50 backdrop-blur-md p-2 border border-white/20 dark:border-gray-700/20">
             <Calendar
               onChange={setSelectedDate}
               value={selectedDate}
               className="react-calendar w-full border-0 bg-transparent text-gray-900 dark:text-gray-100"
-              tileClassName="transition-all duration-300"
             />
           </div>
         </div>
       )}
 
-      {/* Selected Date */}
       <p className="text-center mt-4 text-gray-700 dark:text-gray-300 transition-all duration-300">
         📆 Selected Date:{" "}
         <span className="font-semibold">{selectedDate.toDateString()}</span>
       </p>
 
-      {/* Custom Calendar Theme Fix */}
       <style jsx>{`
         .react-calendar {
           width: 100%;
           border: none;
         }
-
-        /* Light mode */
         .react-calendar__tile {
-          background-color: #f9fafb;
-          color: #111827;
+          background-color: transparent;
+          color: inherit;
           border-radius: 8px;
+          transition: all 0.3s ease;
         }
         .react-calendar__tile--active {
           background-color: #3b82f6 !important;
           color: white !important;
         }
-
-        /* Dark mode */
-        [data-theme='dark'] .react-calendar__tile {
-          background-color: #1f2937;
-          color: #f3f4f6;
-        }
         [data-theme='dark'] .react-calendar__tile--active {
           background-color: #2563eb !important;
-          color: #fff !important;
         }
       `}</style>
     </div>
