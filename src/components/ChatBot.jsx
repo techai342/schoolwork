@@ -25,7 +25,7 @@ const SETTINGS_KEY = "chat_settings_v1";
 const ASSISTANT_AVATAR = "🤖";
 const USER_AVATAR = "👑"; // Saqib icon on right as requested (change if you want)
 const HEADER_TITLE = "AI Study Coach";
-const HEADER_SUBTITLE = "Saqib’s AI Buddy";
+const HEADER_SUBTITLE = "Saqib's AI Buddy";
 
 /* default personalities */
 const DEFAULT_PERSONALITIES = [
@@ -539,12 +539,12 @@ export default function ChatBot() {
 }
 
 /* ---------- Chat shell (floating card) ---------- */
-/* Desktop: bottom-right stable
-   Mobile: slide-up full-ish (won't overlap the full page) */
+/* Desktop: bottom-right stable but moved slightly left */
+/* Mobile: slide-up full-ish (won't overlap the full page) */
 .cf-shell {
   position: fixed;
   z-index: 999998;
-  right: 20px;
+  right: 40px; /* Moved left from 20px to 40px */
   bottom: 86px;
   width: 400px;
   max-width: calc(100% - 32px);
@@ -669,12 +669,6 @@ export default function ChatBot() {
   border-top-left-radius:6px;
 }
 
-/* ensure contrast in light color-scheme: if user has light theme, bot bubble switches to dark text */
-@media (prefers-color-scheme: light) {
-  .cf-bubble-bot { background: linear-gradient(180deg, #ffffff, #f1f7ff); color: #052034; border: 1px solid rgba(3,10,33,0.06); }
-  .cf-card { background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(250,252,255,0.92)); color: #042038; }
-}
-
 /* message time small */
 .cf-msg-time { font-size:11px; color: rgba(200,230,255,0.65); align-self:flex-end; margin-top:6px; }
 
@@ -753,15 +747,117 @@ export default function ChatBot() {
   stroke-width: 1.6;
 }
 
-/* prefer dark scheme: icons white-ish */
-@media (prefers-color-scheme: dark) {
-  .cf-ui-icon { color: #ffffff; }
+/* ---------- LIGHT THEME STYLES (IMPORTANT FIXES) ---------- */
+/* Light theme overrides for better contrast and readability */
+@media (prefers-color-scheme: light) {
+  /* Main card styling for light theme */
+  .cf-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,252,255,0.98));
+    border: 1px solid rgba(0,0,0,0.08);
+    color: #1a1a1a;
+  }
+
+  /* Header text - dark and readable */
+  .cf-title-main { 
+    color: #1a365d; /* Dark blue for good contrast */
+    font-weight: 700;
+  }
+  
+  .cf-title-sub { 
+    color: #2d3748; /* Dark gray for subtitle */
+    opacity: 0.9;
+  }
+
+  /* Personality selector - dark text */
+  .cf-personality {
+    color: #2d3748;
+    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(250,250,250,0.9));
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* BOT bubble - light background with DARK TEXT for readability */
+  .cf-bubble-bot {
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    color: #2d3748; /* Dark gray text for maximum readability */
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* Bot message time in light theme */
+  .cf-bubble-bot .cf-msg-time {
+    color: #718096; /* Medium gray for time */
+  }
+
+  /* USER bubble - remains blue but with white text */
+  .cf-bubble-user {
+    background: linear-gradient(180deg, rgba(6,182,212,0.95), rgba(59,130,246,0.95));
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  /* Input field - dark text on light background */
+  .cf-input {
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,250,250,0.95));
+    color: #2d3748; /* Dark text in input */
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* UI Icons - DARK for visibility in light theme */
+  .cf-ui-icon {
+    color: #2d3748 !important; /* Dark color for all icons in light theme */
+  }
+
+  /* Header buttons styling */
+  .cf-icon-btn {
+    color: #2d3748;
+  }
+  
+  .cf-icon-btn:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  /* Body background */
+  .cf-body {
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,250,250,0.7));
+  }
+
+  /* Controls background */
+  .cf-controls {
+    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(250,250,250,0.9));
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+
+  /* Mic button in light theme */
+  .cf-mic-btn {
+    background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(250,250,250,0.9));
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  /* Typing indicator in light theme */
+  .cf-typing {
+    background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(250,250,250,0.9));
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+
+  /* Floating button in light theme */
+  .cf-floating-btn {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(250,250,250,0.95));
+    border: 1px solid rgba(0,0,0,0.1);
+    color: #2d3748;
+  }
+
+  /* Minimized logo in light theme */
+  .cf-min-logo {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(250,250,250,0.95));
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+  
+  .cf-min-inner { color: var(--accent-b); }
 }
 
-/* if user has light theme, ensure icons visible */
-@media (prefers-color-scheme: light) {
-  .cf-ui-icon { color: #05394a; }
-  .cf-send-btn { color: #fff; }
+/* Prefer dark scheme: icons white-ish */
+@media (prefers-color-scheme: dark) {
+  .cf-ui-icon { color: #ffffff; }
 }
 
 /* ---------- Responsive: Mobile behavior (slide-up, near-fullscreen) ---------- */
