@@ -226,7 +226,7 @@ export default function ChatBot() {
 let botReply = "No answer (API error)";
 try {
   const q = buildQuery(text);
-  const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/ai4chat?text=${encodeURIComponent(q)}`;
+  const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/cf/gpt-oss-120b?text=${encodeURIComponent(q)}`;
   const r = await fetch(url, { method: "GET" });
 
   if (!r.ok) {
