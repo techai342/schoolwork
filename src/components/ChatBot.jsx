@@ -1,4 +1,4 @@
-// src/components/ChatBot.jsx
+ // src/components/ChatBot.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { MessageCircle, SendHorizontal, Mic, X, Maximize2, Minimize2 } from "lucide-react";
 
@@ -201,13 +201,12 @@ export default function ChatBot() {
       return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     } catch { return ""; }
   };
-/* --------------------------- Send message to API --------------------------- */
-const sendMessage = async (manualText) => {
-  try {
+
+  /* --------------------------- Send message to API --------------------------- */
+  const sendMessage = async (manualText) => {
     const text = (manualText !== undefined ? manualText : input).trim();
     if (!text) return;
 
-    // Add user message to chat
     const userMsg = {
       id: Date.now() + Math.random(),
       sender: "user",
@@ -219,64 +218,43 @@ const sendMessage = async (manualText) => {
     setEmojiOpen(false);
     setTyping(true);
 
-    // ensure typing visible briefly (prevent white screen flash)
-    const minTyping = new Promise((res) => setTimeout(res, 800));
+    // ensure typing visible at least briefly
+    const minTyping = new Promise((res) => setTimeout(res, 500));
 
-    // ------------------- API CALL -------------------
-    let botReply = "⚠️ No response (API error)";
-    try {
-      const q = encodeURIComponent(text);
-      const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/cf/gpt-oss-120b?text=${q}`;
-      const r = await fetch(url);
+    // call external API
+// call external API (new Nekolabs API)
+let botReply = "No answer (API error)";
+try {
+  const q = buildQuery(text);
+const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/ai4chat?text=${encodeURIComponent(q)}`;
 
-      if (!r.ok) {
-        botReply = `⚠️ API returned ${r.status}`;
-      } else {
-        const json = await r.json();
+  const r = await fetch(url, { method: "GET" });
 
-        // Some APIs return {result: "..."} and some return full object — handle both safely
-        botReply =
-          json?.result ||
-          json?.response ||
-          json?.message ||
-          "Sorry, I couldn't generate a reply.";
-      }
-    } catch (apiErr) {
-      console.error("Chat API error:", apiErr);
-      botReply = "⚠️ API Error: please try again later.";
-    }
+  if (!r.ok) {
+    botReply = `⚠️ API returned ${r.status}`;
+  } else {
+    const json = await r.json();
+    botReply = json?.result || "Sorry, I couldn't generate a response.";
+  }
+} catch (err) {
+  console.error("Chat API error", err);
+  botReply = "⚠️ API Error: please try again later.";
+}
 
-    // wait briefly so typing indicator stays smooth
+
     await minTyping;
     setTyping(false);
 
-    // ------------------- BOT MESSAGE -------------------
     const botMsg = {
       id: Date.now() + Math.random(),
       sender: "bot",
       text: botReply,
       ts: new Date().toISOString(),
     };
-
-    // append bot reply safely
     setMessages((m) => [...m, botMsg]);
 
-    // voice output (if enabled)
     if (voiceOutput) speakText(botReply);
-  } catch (err) {
-    console.error("Unexpected Chat Error:", err);
-    setTyping(false);
-    setMessages((m) => [
-      ...m,
-      {
-        id: Date.now() + Math.random(),
-        sender: "bot",
-        text: "⚠️ Something went wrong. Please try again.",
-        ts: new Date().toISOString(),
-      },
-    ]);
-  }
-};
+  };
 
   /* --------------------------- Keyboard: Enter send, Shift+Enter newline --------------------------- */
   const handleKeyDown = (e) => {
@@ -603,19 +581,15 @@ const sendMessage = async (manualText) => {
 }
 /* Header - Black theme for both PC and Mobile */
 .cf-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 18px 12px 12px; /* added extra right padding */
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:12px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   background: linear-gradient(180deg, #1a1a1a, #000000) !important;
   color: #ffffff !important;
-  position: relative; /* allows overflow fix */
-  overflow: visible; /* ensures close button isn't cut */
-  z-index: 10; /* keeps icons above other elements */
 }
-
 
 .cf-header-left { display:flex; gap:10px; align-items:center; }
 .cf-avatar-left {
@@ -960,7 +934,7 @@ const sendMessage = async (manualText) => {
   .cf-header {
     padding: 10px;
   }
-  /* Fix mobile layout & show personality selector */
+  .cf-personality { display: none; }
   .cf-emoji-panel { 
     left: 5%; 
     bottom: 90px; 
@@ -970,29 +944,8 @@ const sendMessage = async (manualText) => {
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255,255,255,0.2);
   }
-  .cf-input { 
-    min-height: 50px; 
-    font-size:15px; 
-  }
-  .cf-min-logo, 
-  .cf-floating-btn { 
-    right: 12px; 
-    bottom: 12px; 
-  }
-}
-
-/* ✅ Show personality selector on mobile too */
-@media (max-width: 600px) {
-  .cf-personality {
-    display: block;
-    width: 100%;
-    font-size: 16px;
-    margin-top: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 6px;
-    color: white;
-  }
+  .cf-input { min-height: 50px; font-size:15px; }
+  .cf-min-logo, .cf-floating-btn { right: 12px; bottom: 12px; }
 }
 
 /* Very small phones */
