@@ -203,53 +203,80 @@ export default function ChatBot() {
   };
 /* --------------------------- Send message to API --------------------------- */
 const sendMessage = async (manualText) => {
-  const text = (manualText !== undefined ? manualText : input).trim();
-  if (!text) return;
-
-  const userMsg = {
-    id: Date.now() + Math.random(),
-    sender: "user",
-    text,
-    ts: new Date().toISOString(),
-  };
-  setMessages((m) => [...m, userMsg]);
-  setInput("");
-  setEmojiOpen(false);
-  setTyping(true);
-
-  // ensure typing visible briefly
-  const minTyping = new Promise((res) => setTimeout(res, 500));
-
-  // 🧠 Call external Nekolabs API
-  let botReply = "No answer (API error)";
   try {
-    const q = buildQuery(text);
-    const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/cf/gpt-oss-120b?text=${encodeURIComponent(q)}`;
-    const r = await fetch(url);
-    if (!r.ok) {
-      botReply = `⚠️ API returned ${r.status}`;
-    } else {
-      const json = await r.json();
-      botReply = json?.result || "Sorry, I couldn't generate a response.";
+    const text = (manualText !== undefined ? manualText : input).trim();
+    if (!text) return;
+
+    // Add user message to chat
+    const userMsg = {
+      id: Date.now() + Math.random(),
+      sender: "user",
+      text,
+      ts: new Date().toISOString(),
+    };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
+    setEmojiOpen(false);
+    setTyping(true);
+
+    // ensure typing visible briefly (prevent white screen flash)
+    const minTyping = new Promise((res) => setTimeout(res, 800));
+
+    // ------------------- API CALL -------------------
+    let botReply = "⚠️ No response (API error)";
+    try {
+      const q = encodeURIComponent(text);
+      const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/cf/gpt-oss-120b?text=${q}`;
+      const r = await fetch(url);
+
+      if (!r.ok) {
+        botReply = `⚠️ API returned ${r.status}`;
+      } else {
+        const json = await r.json();
+
+        // Some APIs return {result: "..."} and some return full object — handle both safely
+        botReply =
+          json?.result ||
+          json?.response ||
+          json?.message ||
+          "Sorry, I couldn't generate a reply.";
+      }
+    } catch (apiErr) {
+      console.error("Chat API error:", apiErr);
+      botReply = "⚠️ API Error: please try again later.";
     }
-  } catch (err) {
-    console.error("Chat API error", err);
-    botReply = "⚠️ API Error: please try again later.";
-  }
-  
+
+    // wait briefly so typing indicator stays smooth
     await minTyping;
     setTyping(false);
 
+    // ------------------- BOT MESSAGE -------------------
     const botMsg = {
       id: Date.now() + Math.random(),
       sender: "bot",
       text: botReply,
       ts: new Date().toISOString(),
     };
+
+    // append bot reply safely
     setMessages((m) => [...m, botMsg]);
 
+    // voice output (if enabled)
     if (voiceOutput) speakText(botReply);
-  };
+  } catch (err) {
+    console.error("Unexpected Chat Error:", err);
+    setTyping(false);
+    setMessages((m) => [
+      ...m,
+      {
+        id: Date.now() + Math.random(),
+        sender: "bot",
+        text: "⚠️ Something went wrong. Please try again.",
+        ts: new Date().toISOString(),
+      },
+    ]);
+  }
+};
 
   /* --------------------------- Keyboard: Enter send, Shift+Enter newline --------------------------- */
   const handleKeyDown = (e) => {
