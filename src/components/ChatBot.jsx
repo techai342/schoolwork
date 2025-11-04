@@ -580,15 +580,19 @@ try {
 }
 /* Header - Black theme for both PC and Mobile */
 .cf-header {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  padding:12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 18px 12px 12px; /* added extra right padding */
   border-bottom: 1px solid rgba(255,255,255,0.1);
   background: linear-gradient(180deg, #1a1a1a, #000000) !important;
   color: #ffffff !important;
+  position: relative; /* allows overflow fix */
+  overflow: visible; /* ensures close button isn't cut */
+  z-index: 10; /* keeps icons above other elements */
 }
+
 
 .cf-header-left { display:flex; gap:10px; align-items:center; }
 .cf-avatar-left {
