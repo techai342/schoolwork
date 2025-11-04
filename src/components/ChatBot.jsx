@@ -201,46 +201,42 @@ export default function ChatBot() {
       return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     } catch { return ""; }
   };
+/* --------------------------- Send message to API --------------------------- */
+const sendMessage = async (manualText) => {
+  const text = (manualText !== undefined ? manualText : input).trim();
+  if (!text) return;
 
-  /* --------------------------- Send message to API --------------------------- */
-  const sendMessage = async (manualText) => {
-    const text = (manualText !== undefined ? manualText : input).trim();
-    if (!text) return;
+  const userMsg = {
+    id: Date.now() + Math.random(),
+    sender: "user",
+    text,
+    ts: new Date().toISOString(),
+  };
+  setMessages((m) => [...m, userMsg]);
+  setInput("");
+  setEmojiOpen(false);
+  setTyping(true);
 
-    const userMsg = {
-      id: Date.now() + Math.random(),
-      sender: "user",
-      text,
-      ts: new Date().toISOString(),
-    };
-    setMessages((m) => [...m, userMsg]);
-    setInput("");
-    setEmojiOpen(false);
-    setTyping(true);
+  // ensure typing visible briefly
+  const minTyping = new Promise((res) => setTimeout(res, 500));
 
-    // ensure typing visible at least briefly
-    const minTyping = new Promise((res) => setTimeout(res, 500));
-
-    // call external API
-// call external API (new Nekolabs API)
-let botReply = "No answer (API error)";
-try {
-  const q = buildQuery(text);
-  const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/cf/gpt-oss-120b?text=${encodeURIComponent(q)}`;
-  const r = await fetch(url, { method: "GET" });
-
-  if (!r.ok) {
-    botReply = `⚠️ API returned ${r.status}`;
-  } else {
-    const json = await r.json();
-    botReply = json?.result || "Sorry, I couldn't generate a response.";
+  // 🧠 Call external Nekolabs API
+  let botReply = "No answer (API error)";
+  try {
+    const q = buildQuery(text);
+    const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/cf/gpt-oss-120b?text=${encodeURIComponent(q)}`;
+    const r = await fetch(url);
+    if (!r.ok) {
+      botReply = `⚠️ API returned ${r.status}`;
+    } else {
+      const json = await r.json();
+      botReply = json?.result || "Sorry, I couldn't generate a response.";
+    }
+  } catch (err) {
+    console.error("Chat API error", err);
+    botReply = "⚠️ API Error: please try again later.";
   }
-} catch (err) {
-  console.error("Chat API error", err);
-  botReply = "⚠️ API Error: please try again later.";
-}
-
-
+  
     await minTyping;
     setTyping(false);
 
