@@ -934,7 +934,7 @@ const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/ai4chat?text=$
   .cf-header {
     padding: 10px;
   }
-  .cf-personality { display: none; }
+  /* Fix mobile layout & show personality selector */
   .cf-emoji-panel { 
     left: 5%; 
     bottom: 90px; 
@@ -944,8 +944,29 @@ const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/ai4chat?text=$
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255,255,255,0.2);
   }
-  .cf-input { min-height: 50px; font-size:15px; }
-  .cf-min-logo, .cf-floating-btn { right: 12px; bottom: 12px; }
+  .cf-input { 
+    min-height: 50px; 
+    font-size:15px; 
+  }
+  .cf-min-logo, 
+  .cf-floating-btn { 
+    right: 12px; 
+    bottom: 12px; 
+  }
+}
+
+/* ✅ Show personality selector on mobile too */
+@media (max-width: 600px) {
+  .cf-personality {
+    display: block;
+    width: 100%;
+    font-size: 16px;
+    margin-top: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px;
+    color: white;
+  }
 }
 
 /* Very small phones */
