@@ -222,32 +222,24 @@ export default function ChatBot() {
     const minTyping = new Promise((res) => setTimeout(res, 500));
 
     // call external API
-// Call OpenRouter API
+// call external API (new Nekolabs API)
 let botReply = "No answer (API error)";
 try {
-  const query = buildQuery(text);
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer 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",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "deepseek/deepseek-chat-v3.1:free",
-      messages: [{ role: "user", content: query }],
-    }),
-  });
+  const q = buildQuery(text);
+  const url = `https://corsproxy.io/?https://api.nekolabs.web.id/ai/ai4chat?text=${encodeURIComponent(q)}`;
+  const r = await fetch(url, { method: "GET" });
 
-  if (!response.ok) {
-    botReply = `⚠️ API returned ${response.status}`;
+  if (!r.ok) {
+    botReply = `⚠️ API returned ${r.status}`;
   } else {
-    const data = await response.json();
-    botReply = data?.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
+    const json = await r.json();
+    botReply = json?.result || "Sorry, I couldn't generate a response.";
   }
 } catch (err) {
-  console.error("OpenRouter API error", err);
+  console.error("Chat API error", err);
   botReply = "⚠️ API Error: please try again later.";
 }
+
 
     await minTyping;
     setTyping(false);
