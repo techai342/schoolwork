@@ -18,7 +18,7 @@ import { MessageCircle, SendHorizontal, Mic, X, Maximize2, Minimize2 } from "luc
  * Paste this file at src/components/ChatBot.jsx and import <ChatBot /> into your app.
  */
 
-/* --------------------------- Config --------------------------- */
+/* --------------------------- Config ---------------------------- */
 const STORAGE_KEY = "chat_history_v1";
 const SETTINGS_KEY = "chat_settings_v1";
 
