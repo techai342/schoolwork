@@ -1,74 +1,89 @@
-import React, { useState } from "react";
-import { evaluate, derivative, simplify, parse } from "mathjs";
-import "./calculator.css";
+// src/components/ScientificCalculator.jsx
+import React, { useState } from 'react';
 
 const ScientificCalculator = () => {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
 
-  const handleClick = (value) => {
-    setInput(input + value);
-  };
+  const handleButtonClick = (value) => {
+    if (value === '=') {
+      try {
+        // Replace scientific functions for evaluation
+        let expression = input
+          .replace(/sin\(/g, 'Math.sin(')
+          .replace(/cos\(/g, 'Math.cos(')
+          .replace(/tan\(/g, 'Math.tan(')
+          .replace(/log\(/g, 'Math.log10(')
+          .replace(/ln\(/g, 'Math.log(')
+          .replace(/sqrt\(/g, 'Math.sqrt(')
+          .replace(/π/g, 'Math.PI')
+          .replace(/e/g, 'Math.E')
+          .replace(/\^/g, '**');
 
-  const handleClear = () => {
-    setInput("");
-  };
-
-  const handleEqual = () => {
-    try {
-      const result = evaluate(input);
-      setInput(result.toString());
-    } catch (error) {
-      setInput("Error");
+        setResult(eval(expression));
+      } catch (error) {
+        setResult('Error');
+      }
+    } else if (value === 'C') {
+      setInput('');
+      setResult('');
+    } else if (value === 'DEL') {
+      setInput(input.slice(0, -1));
+    } else {
+      setInput(input + value);
     }
   };
 
-  const handleDerivative = () => {
-    try {
-      const result = derivative(input, 'x').toString();
-      setInput(result);
-    } catch (error) {
-      setInput("Error");
-    }
-  };
-
-  const handleIntegral = () => {
-    try {
-      const node = parse(input);
-      const result = simplify(node);
-      setInput(result.toString());
-    } catch (error) {
-      setInput("Error");
-    }
-  };
+  const buttons = [
+    ['C', 'DEL', 'π', 'e'],
+    ['sin(', 'cos(', 'tan(', '^'],
+    ['log(', 'ln(', 'sqrt(', '/'],
+    ['7', '8', '9', '*'],
+    ['4', '5', '6', '-'],
+    ['1', '2', '3', '+'],
+    ['0', '.', '(', ')'],
+    ['=']
+  ];
 
   return (
-    <div className="calc-container">
-      <div className="calc-display">{input || "0"}</div>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-md mx-auto">
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">
+        Scientific Calculator
+      </h2>
+      
+      {/* Display */}
+      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-4">
+        <div className="text-right">
+          <div className="text-gray-600 dark:text-gray-300 text-sm min-h-6">
+            {input || '0'}
+          </div>
+          <div className="text-2xl font-bold text-gray-800 dark:text-white min-h-8">
+            {result || '0'}
+          </div>
+        </div>
+      </div>
 
-      <div className="calc-buttons">
-        <button onClick={handleClear}>AC</button>
-        <button onClick={() => handleDerivative()}>d/dx</button>
-        <button onClick={() => handleIntegral()}>∫</button>
-        <button onClick={() => handleClick("/")}>÷</button>
-
-        <button onClick={() => handleClick("7")}>7</button>
-        <button onClick={() => handleClick("8")}>8</button>
-        <button onClick={() => handleClick("9")}>9</button>
-        <button onClick={() => handleClick("*")}>×</button>
-
-        <button onClick={() => handleClick("4")}>4</button>
-        <button onClick={() => handleClick("5")}>5</button>
-        <button onClick={() => handleClick("6")}>6</button>
-        <button onClick={() => handleClick("-")}>−</button>
-
-        <button onClick={() => handleClick("1")}>1</button>
-        <button onClick={() => handleClick("2")}>2</button>
-        <button onClick={() => handleClick("3")}>3</button>
-        <button onClick={() => handleClick("+")}>+</button>
-
-        <button onClick={() => handleClick("0")}>0</button>
-        <button onClick={() => handleClick(".")}>.</button>
-        <button onClick={handleEqual}>=</button>
+      {/* Buttons Grid */}
+      <div className="grid grid-cols-4 gap-3">
+        {buttons.flat().map((btn, index) => (
+          <button
+            key={index}
+            onClick={() => handleButtonClick(btn)}
+            className={`
+              p-4 rounded-lg text-lg font-semibold transition-all duration-200
+              ${btn === '=' 
+                ? 'col-span-4 bg-indigo-600 hover:bg-indigo-700 text-white' 
+                : btn === 'C' || btn === 'DEL'
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : /[0-9]/.test(btn) || btn === '.'
+                ? 'bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }
+            `}
+          >
+            {btn}
+          </button>
+        ))}
       </div>
     </div>
   );
