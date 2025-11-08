@@ -1,0 +1,37 @@
+.calc-container {
+  width: 260px;
+  margin: auto;
+  padding: 15px;
+  background: #222;
+  border-radius: 10px;
+  color: white;
+}
+
+.calc-display {
+  background: #111;
+  padding: 14px;
+  font-size: 20px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+.calc-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-buttons button {
+  padding: 12px;
+  font-size: 16px;
+  background: #444;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+}
+
+.calc-buttons button:hover {
+  background: #666;
+}
