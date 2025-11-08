@@ -7,7 +7,6 @@ import UpdatePrompt from "./components/UpdatePrompt";
 import MotivationBooster from "./components/MotivationBooster";
 import ReminderNotification from "./components/ReminderNotification";
 import InstallAppButton from "./components/InstallAppButton";
-import ServiceWorkerRegistration from "./components/ServiceWorkerRegistration";
 import CurrentReminder from "./components/CurrentReminder";
 import SyllabusProgress from "./components/SyllabusProgress";
 import ScheduleList from "./components/ScheduleList";
@@ -17,7 +16,6 @@ import FloatingActionButton from "./components/FloatingActionButton";
 import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
-import ScientificCalculator from "./components/ScientificCalculator";   // ✅ NEW IMPORT
 import "./index.css";
 
 export default function App() {
@@ -37,7 +35,19 @@ export default function App() {
 
           {/* ✅ To-Do List */}
           <TodoList />
-          <CalendarWidget />  
+
+          {/* ✅ Calendar */}
+          <CalendarWidget />
+
+          {/* ✅ Button to Open Full Calculator Page */}
+          <div className="text-center mb-6">
+            <a 
+              href="/calculator" 
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+            >
+              Open Scientific Calculator
+            </a>
+          </div>
 
           {/* ✅ Daily Tracker + Notifier */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -49,12 +59,6 @@ export default function App() {
           <ScheduleList />
           <SubjectProgress />
           <PerformanceSummary />
-
-          {/* ✅ Scientific Calculator Section */}
-          <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-2 text-center">Scientific Calculator</h2>
-            <ScientificCalculator />   {/* ✅ CALCULATOR ADDED HERE */}
-          </div>
         </div>
       </div>
 
