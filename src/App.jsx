@@ -17,6 +17,7 @@ import FloatingActionButton from "./components/FloatingActionButton";
 import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
+import ScientificCalculator from "./components/ScientificCalculator";   // ✅ NEW IMPORT
 import "./index.css";
 
 export default function App() {
@@ -31,16 +32,14 @@ export default function App() {
 
         <div className="space-y-8">
           <CurrentReminder />
-          
-          {/* ✅ ChatBot ko alag positioning ke liye root level pe rakha hai */}
           <DashboardOverview />
           <MotivationBooster />
 
-          {/* ✅ Added To-Do List Section */}
+          {/* ✅ To-Do List */}
           <TodoList />
           <CalendarWidget />  
-          
-          {/* --- Daily Tracker + Notifier side by side on large screens --- */}
+
+          {/* ✅ Daily Tracker + Notifier */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <DailyGoalTracker />
             <StudyNotifier />
@@ -50,23 +49,25 @@ export default function App() {
           <ScheduleList />
           <SubjectProgress />
           <PerformanceSummary />
+
+          {/* ✅ Scientific Calculator Section */}
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-2 text-center">Scientific Calculator</h2>
+            <ScientificCalculator />   {/* ✅ CALCULATOR ADDED HERE */}
+          </div>
         </div>
       </div>
 
-      {/* ✅ ChatBot ko main content flow se bahar rakha hai for proper positioning */}
       <ChatBot />
-      
       <FloatingActionButton />
       <InstallAppButton />
       <UpdatePrompt />
 
-      {/* Reminder Notification */}
       <ReminderNotification
         message="Time for Mind Time! ☕ Take a break & prepare for college."
         showTime={reminderTime}
       />
 
-      {/* Smooth theme transition */}
       <style>{`
         :root {
           --ios-bg: linear-gradient(to bottom right, #f0faff, #dfe9ff);
