@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom"; // ✅ Added
+import { Link } from "react-router-dom"; // ✅ Use Link for SPA navigation
 import Header from "./components/Header";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
@@ -35,7 +35,7 @@ export default function App() {
           <TodoList />
           <CalendarWidget />
 
-          {/* ✅ Corrected Link */}
+          {/* ✅ Corrected SPA Link */}
           <div className="text-center mb-6">
             <Link
               to="/calculator"
