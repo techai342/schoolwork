@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // ✅ Added
 import Header from "./components/Header";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
@@ -19,9 +20,8 @@ import TodoList from "./components/TodoList";
 import "./index.css";
 
 export default function App() {
-  // Set reminder time: 6:30 AM today
   const reminderTime = new Date();
-  reminderTime.setHours(6, 30, 0, 0); // 6:30:00 AM
+  reminderTime.setHours(6, 30, 0, 0);
 
   return (
     <div className="min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300">
@@ -32,24 +32,19 @@ export default function App() {
           <CurrentReminder />
           <DashboardOverview />
           <MotivationBooster />
-
-          {/* ✅ To-Do List */}
           <TodoList />
-
-          {/* ✅ Calendar */}
           <CalendarWidget />
 
-          {/* ✅ Button to Open Full Calculator Page */}
+          {/* ✅ Corrected Link */}
           <div className="text-center mb-6">
-            <a 
-              href="/calculator" 
+            <Link
+              to="/calculator"
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
             >
               Open Scientific Calculator
-            </a>
+            </Link>
           </div>
 
-          {/* ✅ Daily Tracker + Notifier */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <DailyGoalTracker />
             <StudyNotifier />
