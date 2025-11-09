@@ -46,10 +46,10 @@ const Q3CoulombsLaw = () => {
         <p>
           where \( \epsilon_0 \) is an electrical constant, known as permittivity of free space. "The permittivity of free space or air is the permission given by air for the transmission of force from one charge to other charge". In SI units, its value is \( 8.85 \times 10^{-12} \, \text{C}^2\text{N}^{-1}\text{m}^{-2} \). Coulomb's force always acts along the line joining two charges. Therefore Coulomb's force in free space is:
         </p>
-        
-        <div className="important-formula">
-          \[F = \frac{1}{4\pi\epsilon_0} \frac{q_1q_2}{r^2}\]
-        </div>
+        <div className="formula">
+        {"\\[K = \\frac{1}{4\\pi\\epsilon_0}\\]"}
+         </div>
+
         
         <p className="figure-caption">
           Fig. (a) Repulsive forces between like charges and (b) attractive forces between unlike charges.
@@ -110,3 +110,4 @@ const Q3CoulombsLaw = () => {
 
 
 export default Q3CoulombsLaw;
+
