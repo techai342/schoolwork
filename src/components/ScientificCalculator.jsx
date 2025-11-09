@@ -1,4 +1,4 @@
-// src/components/ScientificCalculator.jsx
+ // src/components/ScientificCalculator.jsx
 import React, { useState, useEffect } from 'react';
 
 const ScientificCalculator = () => {
@@ -10,6 +10,42 @@ const ScientificCalculator = () => {
   const [history, setHistory] = useState([]);
   const [memory, setMemory] = useState(0);
   const [ans, setAns] = useState(0);
+  const [showHistory, setShowHistory] = useState(false);
+  const [variables, setVariables] = useState({ x: 0, y: 0, z: 0 });
+  const [matrixMode, setMatrixMode] = useState(false);
+  const [complexMode, setComplexMode] = useState(false);
+
+  // Advanced mathematical functions
+  const factorial = (n) => {
+    if (n < 0) throw new Error('Negative factorial');
+    if (n === 0 || n === 1) return 1;
+    let result = 1;
+    for (let i = 2; i <= n; i++) {
+      result *= i;
+    }
+    return result;
+  };
+
+  const nCr = (n, r) => {
+    return factorial(n) / (factorial(r) * factorial(n - r));
+  };
+
+  const nPr = (n, r) => {
+    return factorial(n) / factorial(n - r);
+  };
+
+  const gcd = (a, b) => {
+    while (b !== 0) {
+      let temp = b;
+      b = a % b;
+      a = temp;
+    }
+    return a;
+  };
+
+  const lcm = (a, b) => {
+    return (a * b) / gcd(a, b);
+  };
 
   // Handle button clicks
   const handleButtonClick = (value) => {
@@ -29,8 +65,10 @@ const ScientificCalculator = () => {
       setInput(prev => prev.slice(0, -1));
     } else if (value === 'SHIFT') {
       setIsShift(!isShift);
+      setIsAlpha(false);
     } else if (value === 'ALPHA') {
       setIsAlpha(!isAlpha);
+      setIsShift(false);
     } else if (value === 'MODE') {
       const modes = ['NORM', 'MATH', 'FRAC'];
       setDisplayMode(modes[(modes.indexOf(displayMode) + 1) % modes.length]);
@@ -41,15 +79,60 @@ const ScientificCalculator = () => {
       const currentValue = parseFloat(result) || 0;
       setMemory(prev => prev - currentValue);
     } else if (value === 'STO') {
-      setMemory(parseFloat(result) || 0);
+      if (isAlpha) {
+        // Store to variable
+        setVariables(prev => ({ ...prev, x: parseFloat(result) || 0 }));
+      } else {
+        setMemory(parseFloat(result) || 0);
+      }
     } else if (value === 'RCL') {
-      setInput(prev => prev + memory.toString());
+      if (isAlpha) {
+        setInput(prev => prev + variables.x.toString());
+      } else {
+        setInput(prev => prev + memory.toString());
+      }
     } else if (value === 'ANS') {
       setInput(prev => prev + ans.toString());
     } else if (value === 'π') {
       setInput(prev => prev + Math.PI.toString());
     } else if (value === 'e') {
       setInput(prev => prev + Math.E.toString());
+    } else if (value === 'HISTORY') {
+      setShowHistory(!showHistory);
+    } else if (value === 'MATRIX') {
+      setMatrixMode(!matrixMode);
+    } else if (value === 'CMPLX') {
+      setComplexMode(!complexMode);
+    } else if (value === 'CLRV') {
+      // Clear variables
+      setVariables({ x: 0, y: 0, z: 0 });
+    } else if (value === 'SOLVE') {
+      // Simple equation solver
+      try {
+        const equation = input.replace(/=/g, '===').replace(/x/g, variables.x.toString());
+        // This is a simplified solver - in real implementation you'd use a proper solver
+        setResult('Solver Active');
+      } catch (error) {
+        setResult('Solver Error');
+      }
+    } else if (value === 'CONST') {
+      // Constants menu
+      setInput(prev => prev + 'const_');
+    } else if (value === 'CONV') {
+      // Conversion menu
+      setInput(prev => prev + 'conv_');
+    } else if (value === 'COPY') {
+      // Copy result to clipboard
+      navigator.clipboard.writeText(result);
+    } else if (value === 'PASTE') {
+      // Paste from clipboard
+      navigator.clipboard.readText().then(text => {
+        setInput(prev => prev + text);
+      });
+    } else if (value === 'Ran#') {
+      setInput(prev => prev + Math.random().toString());
+    } else if (value === 'RanInt') {
+      setInput(prev => prev + `randint(`);
     } else {
       setInput(prev => prev + value);
     }
@@ -64,13 +147,27 @@ const ScientificCalculator = () => {
         .replace(/π/g, Math.PI.toString())
         .replace(/e/g, Math.E.toString())
         .replace(/√/g, 'Math.sqrt')
+        .replace(/³√/g, 'Math.cbrt')
         .replace(/sin/g, 'Math.sin')
         .replace(/cos/g, 'Math.cos')
         .replace(/tan/g, 'Math.tan')
+        .replace(/sin⁻¹/g, 'Math.asin')
+        .replace(/cos⁻¹/g, 'Math.acos')
+        .replace(/tan⁻¹/g, 'Math.atan')
         .replace(/log/g, 'Math.log10')
         .replace(/ln/g, 'Math.log')
         .replace(/MOD/g, '%')
-        .replace(/ANS/g, ans.toString());
+        .replace(/ANS/g, ans.toString())
+        .replace(/nCr\(/g, 'nCr(')
+        .replace(/nPr\(/g, 'nPr(')
+        .replace(/GCD\(/g, 'gcd(')
+        .replace(/LCM\(/g, 'lcm(')
+        .replace(/floor\(/g, 'Math.floor(')
+        .replace(/ceil\(/g, 'Math.ceil(')
+        .replace(/randint\(/g, 'Math.floor(Math.random()*');
+
+      // Handle factorial
+      expression = expression.replace(/(\d+)!/g, (match, num) => factorial(parseInt(num)));
 
       return eval(expression);
     } catch (error) {
@@ -82,7 +179,7 @@ const ScientificCalculator = () => {
   const getButtonLayout = () => {
     if (isShift) {
       return [
-        // Row 1
+        // Row 1 - Advanced functions
         [
           { label: 'STO', value: 'STO', type: 'memory' },
           { label: 'RCL', value: 'RCL', type: 'memory' },
@@ -91,7 +188,7 @@ const ScientificCalculator = () => {
           { label: ')', value: ')', type: 'function' },
           { label: 'S=D', value: 'S=D', type: 'function' }
         ],
-        // Row 2
+        // Row 2 - More advanced functions
         [
           { label: 'CONV', value: 'CONV', type: 'function' },
           { label: 'SI', value: 'SI', type: 'function' },
@@ -100,7 +197,7 @@ const ScientificCalculator = () => {
           { label: '(', value: '(', type: 'function' },
           { label: ')', value: ')', type: 'function' }
         ],
-        // Row 3 - Numbers and basic operations
+        // Row 3 - Numbers and operations
         [
           { label: '7', value: '7', type: 'number' },
           { label: '8', value: '8', type: 'number' },
@@ -136,27 +233,27 @@ const ScientificCalculator = () => {
           { label: 'DISTR', value: 'DISTR', type: 'function' },
           { label: 'Pol', value: 'Pol', type: 'function' }
         ],
-        // Row 7
+        // Row 7 - Special functions
         [
           { label: 'COPY', value: 'COPY', type: 'function' },
           { label: 'PASTE', value: 'PASTE', type: 'function' },
-          { label: 'Ran#', value: 'Math.random()', type: 'function' },
+          { label: 'Ran#', value: 'Ran#', type: 'function' },
           { label: 'RanInt', value: 'RanInt', type: 'function' },
           { label: 'π', value: 'π', type: 'constant' },
           { label: 'e', value: 'e', type: 'constant' }
         ],
-        // Row 8
+        // Row 8 - Bottom functions
         [
           { label: 'PreAns', value: 'PreAns', type: 'function' },
-          { label: 'History', value: 'History', type: 'history' },
+          { label: 'History', value: 'HISTORY', type: 'history' },
           { label: '=', value: '=', type: 'equals' },
           { label: 'Rec', value: 'Rec', type: 'function' },
-          { label: 'Floor', value: 'Math.floor(', type: 'function' },
-          { label: 'Ceil', value: 'Math.ceil(', type: 'function' }
+          { label: 'Floor', value: 'floor(', type: 'function' },
+          { label: 'Ceil', value: 'ceil(', type: 'function' }
         ]
       ];
     } else {
-      // Normal mode layout (matching the image exactly)
+      // Normal mode layout (more advanced)
       return [
         // Row 1 - Top functions
         [
@@ -170,7 +267,7 @@ const ScientificCalculator = () => {
         // Row 2 - More functions
         [
           { label: '√', value: '√(', type: 'function' },
-          { label: '³√', value: 'Math.cbrt(', type: 'function' },
+          { label: '³√', value: '³√(', type: 'function' },
           { label: 'log', value: 'log(', type: 'function' },
           { label: 'ln', value: 'ln(', type: 'function' },
           { label: 'eˣ', value: 'Math.exp(', type: 'function' },
@@ -181,18 +278,18 @@ const ScientificCalculator = () => {
           { label: 'sin', value: 'sin(', type: 'trig' },
           { label: 'cos', value: 'cos(', type: 'trig' },
           { label: 'tan', value: 'tan(', type: 'trig' },
-          { label: 'sin⁻¹', value: 'Math.asin(', type: 'trig' },
-          { label: 'cos⁻¹', value: 'Math.acos(', type: 'trig' },
-          { label: 'tan⁻¹', value: 'Math.atan(', type: 'trig' }
+          { label: 'sin⁻¹', value: 'sin⁻¹(', type: 'trig' },
+          { label: 'cos⁻¹', value: 'cos⁻¹(', type: 'trig' },
+          { label: 'tan⁻¹', value: 'tan⁻¹(', type: 'trig' }
         ],
-        // Row 4 - Numbers and basic operations
+        // Row 4 - Numbers and operations
         [
           { label: '7', value: '7', type: 'number' },
           { label: '8', value: '8', type: 'number' },
           { label: '9', value: '9', type: 'number' },
           { label: 'DEL', value: 'DEL', type: 'delete' },
           { label: 'AC', value: 'AC', type: 'clear' },
-          { label: 'nCr', value: 'nCr', type: 'combo' }
+          { label: 'nCr', value: 'nCr(', type: 'combo' }
         ],
         // Row 5
         [
@@ -201,7 +298,7 @@ const ScientificCalculator = () => {
           { label: '6', value: '6', type: 'number' },
           { label: '×', value: '×', type: 'operator' },
           { label: '÷', value: '÷', type: 'operator' },
-          { label: 'nPr', value: 'nPr', type: 'combo' }
+          { label: 'nPr', value: 'nPr(', type: 'combo' }
         ],
         // Row 6
         [
@@ -210,7 +307,7 @@ const ScientificCalculator = () => {
           { label: '3', value: '3', type: 'number' },
           { label: '+', value: '+', type: 'operator' },
           { label: '-', value: '-', type: 'operator' },
-          { label: 'GCD', value: 'GCD', type: 'combo' }
+          { label: 'GCD', value: 'GCD(', type: 'combo' }
         ],
         // Row 7
         [
@@ -219,9 +316,9 @@ const ScientificCalculator = () => {
           { label: '(-)', value: '(-)', type: 'function' },
           { label: 'EXP', value: 'E', type: 'function' },
           { label: 'ANS', value: 'ANS', type: 'memory' },
-          { label: 'LCM', value: 'LCM', type: 'combo' }
+          { label: 'LCM', value: 'LCM(', type: 'combo' }
         ],
-        // Row 8 - Bottom row
+        // Row 8 - Bottom row with mode buttons
         [
           { label: 'SHIFT', value: 'SHIFT', type: 'shift' },
           { label: 'ALPHA', value: 'ALPHA', type: 'alpha' },
@@ -269,10 +366,12 @@ const ScientificCalculator = () => {
           <span className={`text-sm font-bold ${displayMode === 'MATH' ? 'text-green-400' : 'text-gray-500'}`}>MATH</span>
           <span className={`text-sm font-bold ${displayMode === 'FRAC' ? 'text-green-400' : 'text-gray-500'}`}>FRAC</span>
         </div>
-        <div className="text-xs text-gray-400">
-          {memory !== 0 && 'M '}
-          {isShift && 'SHIFT '}
-          {isAlpha && 'ALPHA'}
+        <div className="text-xs text-gray-400 flex space-x-2">
+          {isShift && <span className="text-yellow-400">SHIFT</span>}
+          {isAlpha && <span className="text-pink-400">ALPHA</span>}
+          {memory !== 0 && <span className="text-blue-400">M</span>}
+          {matrixMode && <span className="text-green-400">MAT</span>}
+          {complexMode && <span className="text-purple-400">CMPLX</span>}
         </div>
       </div>
 
@@ -286,7 +385,27 @@ const ScientificCalculator = () => {
             {result || '0'}
           </div>
         </div>
+        
+        {/* Variables Display */}
+        <div className="flex justify-between text-xs text-gray-500 mt-2">
+          <span>x: {variables.x}</span>
+          <span>y: {variables.y}</span>
+          <span>z: {variables.z}</span>
+          <span>M: {memory}</span>
+        </div>
       </div>
+
+      {/* History Panel */}
+      {showHistory && (
+        <div className="bg-gray-700 rounded-lg p-3 mb-4 max-h-32 overflow-y-auto">
+          <div className="text-sm font-bold text-white mb-2">History</div>
+          {history.slice().reverse().map((item, index) => (
+            <div key={index} className="text-xs text-gray-300 font-mono border-b border-gray-600 py-1">
+              {item}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Calculator Grid */}
       <div className="grid grid-cols-6 gap-2">
@@ -304,7 +423,10 @@ const ScientificCalculator = () => {
       {/* Additional Status Info */}
       <div className="mt-3 text-center">
         <div className="text-xs text-gray-500">
-          {isShift ? 'SHIFT Mode Active' : isAlpha ? 'ALPHA Mode Active' : 'Ready'}
+          {isShift ? 'SHIFT Mode - Advanced Functions' : 
+           isAlpha ? 'ALPHA Mode - Variable Access' : 
+           matrixMode ? 'MATRIX Mode Active' :
+           complexMode ? 'COMPLEX Mode Active' : 'Ready'}
         </div>
       </div>
     </div>
