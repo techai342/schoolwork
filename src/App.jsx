@@ -20,7 +20,7 @@ import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
 import BottomNavbar from "./components/BottomNavbar";
 
-// 📘 New pages
+// 📘 New Pages
 import SyllabusPage from "./pages/SyllabusPage";
 import PracticePage from "./pages/PracticePage";
 import AiTutorPage from "./pages/AiTutorPage";
@@ -33,12 +33,14 @@ export default function App() {
   reminderTime.setHours(6, 30, 0, 0);
 
   return (
-    <div className="min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300 pb-20">
-      <div className="container mx-auto max-w-2xl px-5 py-8">
+    <div className="relative min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300 pb-20">
+      {/* ✅ Scrollable content container */}
+      <div className="container mx-auto max-w-2xl px-5 pt-8 pb-28">
         <Header />
 
+        {/* ✅ All Routes */}
         <Routes>
-          {/* 🏠 Dashboard (Main) */}
+          {/* Dashboard (Main) */}
           <Route
             path="/"
             element={
@@ -62,7 +64,7 @@ export default function App() {
             }
           />
 
-          {/* 📖 New Pages */}
+          {/* Other Pages */}
           <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/ai" element={<AiTutorPage />} />
@@ -70,6 +72,8 @@ export default function App() {
         </Routes>
       </div>
 
+      {/* ✅ Always visible components */}
+      <BottomNavbar />
       <ChatBot />
       <FloatingActionButton />
       <InstallAppButton />
@@ -80,8 +84,7 @@ export default function App() {
         showTime={reminderTime}
       />
 
-      <BottomNavbar />
-
+      {/* Background styling */}
       <style>{`
         :root {
           --ios-bg: linear-gradient(to bottom right, #f0faff, #dfe9ff);
