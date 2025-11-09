@@ -15,52 +15,152 @@ const ScientificCalculator = () => {
   const [matrixMode, setMatrixMode] = useState(false);
   const [vectorMode, setVectorMode] = useState(false);
   const [complexMode, setComplexMode] = useState(false);
+  const [statMode, setStatMode] = useState(false);
+  const [baseMode, setBaseMode] = useState('DEC');
 
   // Advanced mathematical functions
   const mathFunctions = {
-    // Combinatorics
+    // Combinatorics - NCR, NPR, etc.
     nCr: (n, r) => {
-      if (n < 0 || r < 0 || r > n) return 0;
-      return factorial(n) / (factorial(r) * factorial(n - r));
+      if (n < 0 || r < 0 || r > n || !Number.isInteger(n) || !Number.isInteger(r)) return NaN;
+      if (r === 0 || r === n) return 1;
+      if (r === 1 || r === n - 1) return n;
+      
+      r = Math.min(r, n - r);
+      let result = 1;
+      for (let i = 1; i <= r; i++) {
+        result = result * (n - i + 1) / i;
+      }
+      return Math.round(result);
     },
+
     nPr: (n, r) => {
-      if (n < 0 || r < 0 || r > n) return 0;
-      return factorial(n) / factorial(n - r);
+      if (n < 0 || r < 0 || r > n || !Number.isInteger(n) || !Number.isInteger(r)) return NaN;
+      let result = 1;
+      for (let i = 0; i < r; i++) {
+        result *= (n - i);
+      }
+      return result;
     },
+
     factorial: (n) => {
       if (n < 0 || !Number.isInteger(n)) return NaN;
+      if (n === 0 || n === 1) return 1;
       let result = 1;
       for (let i = 2; i <= n; i++) result *= i;
       return result;
     },
+
+    doubleFactorial: (n) => {
+      if (n < 0 || !Number.isInteger(n)) return NaN;
+      let result = 1;
+      for (let i = n; i > 0; i -= 2) result *= i;
+      return result;
+    },
+
     gcd: (a, b) => {
       a = Math.abs(a); b = Math.abs(b);
       while (b) [a, b] = [b, a % b];
       return a;
     },
+
     lcm: (a, b) => Math.abs(a * b) / mathFunctions.gcd(a, b),
-    
+
     // Statistics
     mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
+    
     median: (arr) => {
       const sorted = [...arr].sort((a, b) => a - b);
       const mid = Math.floor(sorted.length / 2);
       return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
     },
-    std: (arr) => {
-      const avg = mathFunctions.mean(arr);
-      return Math.sqrt(arr.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / arr.length);
+
+    mode: (arr) => {
+      const frequency = {};
+      let maxFreq = 0;
+      let modes = [];
+      
+      arr.forEach(num => {
+        frequency[num] = (frequency[num] || 0) + 1;
+        if (frequency[num] > maxFreq) {
+          maxFreq = frequency[num];
+          modes = [num];
+        } else if (frequency[num] === maxFreq) {
+          modes.push(num);
+        }
+      });
+      
+      return modes.length === arr.length ? [] : modes;
     },
+
+    variance: (arr, isSample = true) => {
+      const avg = mathFunctions.mean(arr);
+      const variance = arr.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / 
+                      (isSample ? arr.length - 1 : arr.length);
+      return variance;
+    },
+
+    std: (arr, isSample = true) => Math.sqrt(mathFunctions.variance(arr, isSample)),
+
+    // Probability distributions
+    permutation: (n, r) => mathFunctions.nPr(n, r),
     
+    combination: (n, r) => mathFunctions.nCr(n, r),
+    
+    binomialProbability: (n, k, p) => {
+      return mathFunctions.nCr(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+    },
+
+    // Number theory
+    isPrime: (n) => {
+      if (n <= 1) return false;
+      if (n <= 3) return true;
+      if (n % 2 === 0 || n % 3 === 0) return false;
+      
+      for (let i = 5; i * i <= n; i += 6) {
+        if (n % i === 0 || n % (i + 2) === 0) return false;
+      }
+      return true;
+    },
+
+    primeFactors: (n) => {
+      const factors = [];
+      let divisor = 2;
+      
+      while (n >= 2) {
+        if (n % divisor === 0) {
+          factors.push(divisor);
+          n = n / divisor;
+        } else {
+          divisor++;
+        }
+      }
+      return factors;
+    },
+
+    // Base conversions
+    toBinary: (n) => Math.floor(n).toString(2),
+    toOctal: (n) => Math.floor(n).toString(8),
+    toHex: (n) => Math.floor(n).toString(16).toUpperCase(),
+    fromBinary: (bin) => parseInt(bin, 2),
+    fromOctal: (oct) => parseInt(oct, 8),
+    fromHex: (hex) => parseInt(hex, 16),
+
     // Complex numbers
     complexAdd: (a, b) => ({ real: a.real + b.real, imag: a.imag + b.imag }),
+    
     complexMultiply: (a, b) => ({
       real: a.real * b.real - a.imag * b.imag,
       imag: a.real * b.imag + a.imag * b.real
     }),
-    
-    // Calculus approximations
+
+    complexConjugate: (a) => ({ real: a.real, imag: -a.imag }),
+
+    complexModulus: (a) => Math.sqrt(a.real * a.real + a.imag * a.imag),
+
+    // Calculus
     derivative: (f, x, h = 1e-5) => (f(x + h) - f(x - h)) / (2 * h),
+    
     integral: (f, a, b, n = 1000) => {
       const h = (b - a) / n;
       let sum = f(a) + f(b);
@@ -71,9 +171,7 @@ const ScientificCalculator = () => {
     }
   };
 
-  const factorial = (n) => mathFunctions.factorial(n);
-
-  // Enhanced expression parser
+  // Enhanced expression parser with new functions
   const evaluateExpression = (expr) => {
     try {
       let expression = expr
@@ -98,33 +196,42 @@ const ScientificCalculator = () => {
         .replace(/eˣ/g, 'Math.exp(')
         .replace(/MOD/g, '%')
         .replace(/ANS/g, ans.toString())
-        .replace(/E/g, '*10**')
-        .replace(/nCr\((\d+),(\d+)\)/g, (match, n, r) => mathFunctions.nCr(parseInt(n), parseInt(r)))
-        .replace(/nPr\((\d+),(\d+)\)/g, (match, n, r) => mathFunctions.nPr(parseInt(n), parseInt(r)))
-        .replace(/gcd\(([^,]+),([^)]+)\)/g, (match, a, b) => mathFunctions.gcd(parseFloat(a), parseFloat(b)))
-        .replace(/lcm\(([^,]+),([^)]+)\)/g, (match, a, b) => mathFunctions.lcm(parseFloat(a), parseFloat(b)));
+        .replace(/E/g, '*10**');
 
-      // Handle advanced functions
-      if (expression.includes('∑(')) {
-        expression = expression.replace(/∑\(([^,]+),([^,]+),([^)]+)\)/g, (match, start, end, func) => {
-          let sum = 0;
-          const s = parseInt(start), e = parseInt(end);
-          for (let i = s; i <= e; i++) {
-            sum += eval(func.replace(/n/g, i));
-          }
-          return sum;
-        });
-      }
+      // Handle NCR and NPR
+      expression = expression.replace(/nCr\((\d+),(\d+)\)/g, (match, n, r) => 
+        mathFunctions.nCr(parseInt(n), parseInt(r)));
+      
+      expression = expression.replace(/nPr\((\d+),(\d+)\)/g, (match, n, r) => 
+        mathFunctions.nPr(parseInt(n), parseInt(r)));
 
-      if (expression.includes('∏(')) {
-        expression = expression.replace(/∏\(([^,]+),([^,]+),([^)]+)\)/g, (match, start, end, func) => {
-          let product = 1;
-          const s = parseInt(start), e = parseInt(end);
-          for (let i = s; i <= e; i++) {
-            product *= eval(func.replace(/n/g, i));
-          }
-          return product;
-        });
+      // Handle GCD and LCM
+      expression = expression.replace(/gcd\(([^,]+),([^)]+)\)/g, (match, a, b) => 
+        mathFunctions.gcd(parseFloat(a), parseFloat(b)));
+      
+      expression = expression.replace(/lcm\(([^,]+),([^)]+)\)/g, (match, a, b) => 
+        mathFunctions.lcm(parseFloat(a), parseFloat(b)));
+
+      // Handle factorial and double factorial
+      expression = expression.replace(/(\d+)!!/g, (match, n) => 
+        mathFunctions.doubleFactorial(parseInt(n)));
+      
+      expression = expression.replace(/(\d+)!/g, (match, n) => 
+        mathFunctions.factorial(parseInt(n)));
+
+      // Handle prime check
+      expression = expression.replace(/isPrime\((\d+)\)/g, (match, n) => 
+        mathFunctions.isPrime(parseInt(n)));
+
+      // Handle base conversions
+      if (baseMode !== 'DEC') {
+        if (baseMode === 'BIN') {
+          expression = mathFunctions.toBinary(eval(expression)).toString();
+        } else if (baseMode === 'OCT') {
+          expression = mathFunctions.toOctal(eval(expression)).toString();
+        } else if (baseMode === 'HEX') {
+          expression = mathFunctions.toHex(eval(expression)).toString();
+        }
       }
 
       const evalResult = eval(expression);
@@ -158,31 +265,51 @@ const ScientificCalculator = () => {
     } else if (value === 'MODE') {
       const modes = ['NORM', 'MATH', 'FRAC'];
       setDisplayMode(modes[(modes.indexOf(displayMode) + 1) % modes.length]);
+    } else if (value === 'BASE') {
+      const bases = ['DEC', 'BIN', 'OCT', 'HEX'];
+      setBaseMode(bases[(bases.indexOf(baseMode) + 1) % bases.length]);
     } else if (value === 'MATRIX') {
       setMatrixMode(!matrixMode);
       setVectorMode(false);
       setComplexMode(false);
+      setStatMode(false);
     } else if (value === 'VECTOR') {
       setVectorMode(!vectorMode);
       setMatrixMode(false);
       setComplexMode(false);
+      setStatMode(false);
     } else if (value === 'CMPLX') {
       setComplexMode(!complexMode);
       setMatrixMode(false);
       setVectorMode(false);
-    } else if (value === 'SOLVE') {
-      // Equation solver
-      setInput(prev => prev + 'solve(');
-    } else if (value === 'LIMIT') {
-      setInput(prev => prev + 'limit(');
-    } else if (value === '∑') {
-      setInput(prev => prev + '∑(1,10,n)');
-    } else if (value === '∏') {
-      setInput(prev => prev + '∏(1,10,n)');
-    } else if (value === 'd/dx') {
-      setInput(prev => prev + 'deriv(');
-    } else if (value === '∫dx') {
-      setInput(prev => prev + 'integral(');
+      setStatMode(false);
+    } else if (value === 'STAT') {
+      setStatMode(!statMode);
+      setMatrixMode(false);
+      setVectorMode(false);
+      setComplexMode(false);
+    } else if (value === 'nCr') {
+      setInput(prev => prev + 'nCr(');
+    } else if (value === 'nPr') {
+      setInput(prev => prev + 'nPr(');
+    } else if (value === 'GCD') {
+      setInput(prev => prev + 'gcd(');
+    } else if (value === 'LCM') {
+      setInput(prev => prev + 'lcm(');
+    } else if (value === '!') {
+      setInput(prev => prev + '!');
+    } else if (value === '!!') {
+      setInput(prev => prev + '!!');
+    } else if (value === 'PRIME') {
+      setInput(prev => prev + 'isPrime(');
+    } else if (value === 'BIN') {
+      setBaseMode('BIN');
+    } else if (value === 'OCT') {
+      setBaseMode('OCT');
+    } else if (value === 'HEX') {
+      setBaseMode('HEX');
+    } else if (value === 'DEC') {
+      setBaseMode('DEC');
     } else if (value === 'M+') {
       const currentValue = parseFloat(result) || 0;
       setMemory(prev => prev + currentValue);
@@ -198,7 +325,7 @@ const ScientificCalculator = () => {
     }
   };
 
-  // Advanced button layout with more functions
+  // Enhanced button layout with new functions
   const getButtonLayout = () => {
     if (isShift) {
       return [
@@ -211,12 +338,12 @@ const ScientificCalculator = () => {
           { primary: 'tanh', secondary: 'atanh', value: 'Math.tanh(', type: 'trig' }
         ],
         [
-          { primary: 'x!', secondary: 'fact', value: '!', type: 'function' },
-          { primary: 'nCr', secondary: 'comb', value: 'nCr(', type: 'function' },
-          { primary: 'nPr', secondary: 'perm', value: 'nPr(', type: 'function' },
-          { primary: 'Pol', secondary: '→rθ', value: 'Pol(', type: 'function' },
-          { primary: 'Rec', secondary: '→xy', value: 'Rec(', type: 'function' },
-          { primary: 'Ran#', secondary: 'rand', value: 'Math.random()', type: 'function' }
+          { primary: 'nCr', secondary: 'comb', value: 'nCr', type: 'function' },
+          { primary: 'nPr', secondary: 'perm', value: 'nPr', type: 'function' },
+          { primary: 'GCD', secondary: 'gcd', value: 'GCD', type: 'function' },
+          { primary: 'LCM', secondary: 'lcm', value: 'LCM', type: 'function' },
+          { primary: '!!', secondary: 'dfact', value: '!!', type: 'function' },
+          { primary: 'PRIME', secondary: 'isPrime', value: 'PRIME', type: 'function' }
         ],
         [
           { primary: '⌊x⌋', secondary: 'floor', value: 'Math.floor(', type: 'function' },
@@ -355,9 +482,13 @@ const ScientificCalculator = () => {
         </div>
         <div className="flex items-center space-x-1">
           <span className="text-[10px] text-gray-400">{isRad ? 'RAD' : 'DEG'}</span>
+          <span className={`text-[10px] ${baseMode === 'DEC' ? 'text-green-400' : baseMode === 'BIN' ? 'text-blue-400' : baseMode === 'OCT' ? 'text-yellow-400' : 'text-purple-400'}`}>
+            {baseMode}
+          </span>
           <span className={`text-[10px] ${matrixMode ? 'text-blue-400' : 'text-gray-500'}`}>MAT</span>
           <span className={`text-[10px] ${vectorMode ? 'text-green-400' : 'text-gray-500'}`}>VEC</span>
           <span className={`text-[10px] ${complexMode ? 'text-purple-400' : 'text-gray-500'}`}>CMPLX</span>
+          <span className={`text-[10px] ${statMode ? 'text-orange-400' : 'text-gray-500'}`}>STAT</span>
           <span className="text-[10px] text-blue-400">{memory !== 0 ? 'M' : ''}</span>
         </div>
       </div>
@@ -369,7 +500,7 @@ const ScientificCalculator = () => {
             {input || '0'}
           </div>
           <div className="text-xl font-bold text-white min-h-6 truncate font-mono">
-            {result || '0'}
+            {baseMode !== 'DEC' ? `[${baseMode}] ${result}` : result || '0'}
           </div>
         </div>
       </div>
@@ -387,30 +518,49 @@ const ScientificCalculator = () => {
         <button onClick={() => handleButtonClick('MODE')} className="bg-gray-600 hover:bg-gray-500 p-1 rounded-lg text-white text-[10px]">
           MODE
         </button>
-        <button onClick={() => handleButtonClick('2nd')} className="bg-gray-600 hover:bg-gray-500 p-1 rounded-lg text-white text-[10px]">
-          2nd
+        <button onClick={() => handleButtonClick('BASE')} className="bg-gray-600 hover:bg-gray-500 p-1 rounded-lg text-white text-[10px]">
+          BASE
         </button>
+      </div>
+
+      {/* Base Conversion Row */}
+      <div className="grid grid-cols-6 gap-1 mb-1">
+        <button onClick={() => handleButtonClick('DEC')} className={`p-1 rounded-lg text-white text-[10px] ${baseMode === 'DEC' ? 'bg-green-600' : 'bg-gray-700 hover:bg-gray-600'}`}>
+          DEC
+        </button>
+        <button onClick={() => handleButtonClick('BIN')} className={`p-1 rounded-lg text-white text-[10px] ${baseMode === 'BIN' ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}>
+          BIN
+        </button>
+        <button onClick={() => handleButtonClick('OCT')} className={`p-1 rounded-lg text-white text-[10px] ${baseMode === 'OCT' ? 'bg-yellow-600' : 'bg-gray-700 hover:bg-gray-600'}`}>
+          OCT
+        </button>
+        <button onClick={() => handleButtonClick('HEX')} className={`p-1 rounded-lg text-white text-[10px] ${baseMode === 'HEX' ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'}`}>
+          HEX
+        </button>
+        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">A</button>
+        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">B</button>
       </div>
 
       {/* Advanced Function Rows */}
       <div className="grid grid-cols-6 gap-1 mb-1">
-        <button onClick={() => handleButtonClick('SOLVE')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
-          SOLVE
+        <button onClick={() => handleButtonClick('nCr')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
+          nCr
         </button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">CALC</button>
-        <button onClick={() => handleButtonClick('∫dx')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∫dx</button>
-        <button onClick={() => handleButtonClick('d/dx')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">d/dx</button>
-        <button onClick={() => handleButtonClick('LIMIT')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">LIMIT</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">R→P</button>
-      </div>
-
-      <div className="grid grid-cols-6 gap-1 mb-1">
-        <button onClick={() => handleButtonClick('∑')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∑</button>
-        <button onClick={() => handleButtonClick('∏')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∏</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∞</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∂</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∇</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">∆</button>
+        <button onClick={() => handleButtonClick('nPr')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
+          nPr
+        </button>
+        <button onClick={() => handleButtonClick('GCD')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
+          GCD
+        </button>
+        <button onClick={() => handleButtonClick('LCM')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
+          LCM
+        </button>
+        <button onClick={() => handleButtonClick('!')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
+          x!
+        </button>
+        <button onClick={() => handleButtonClick('!!')} className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">
+          x!!
+        </button>
       </div>
 
       {/* Main Calculator Grid */}
@@ -442,27 +592,21 @@ const ScientificCalculator = () => {
         <button onClick={() => handleButtonClick('CMPLX')} className={`p-1 rounded-lg text-white text-[10px] ${complexMode ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'}`}>
           CMPLX
         </button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">STAT</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">DISTR</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">FUNC</button>
-      </div>
-
-      <div className="grid grid-cols-6 gap-1 mt-1">
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">CONST</button>
+        <button onClick={() => handleButtonClick('STAT')} className={`p-1 rounded-lg text-white text-[10px] ${statMode ? 'bg-orange-600' : 'bg-gray-700 hover:bg-gray-600'}`}>
+          STAT
+        </button>
+        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">PROB</button>
         <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">CONV</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">SI</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">BASE</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">PROG</button>
-        <button className="bg-gray-700 p-1 rounded-lg text-white text-[10px] hover:bg-gray-600">EQUA</button>
       </div>
 
       {/* Enhanced Status Bar */}
       <div className="mt-2 text-center">
         <div className="text-[10px] text-gray-500 font-mono">
-          {isShift ? 'SHIFT' : isAlpha ? 'ALPHA' : 'READY'} • {isRad ? 'RAD' : 'DEG'} • {displayMode} • M:{memory.toFixed(2)}
+          {isShift ? 'SHIFT' : isAlpha ? 'ALPHA' : 'READY'} • {isRad ? 'RAD' : 'DEG'} • {displayMode} • {baseMode} • M:{memory.toFixed(2)}
           {matrixMode && ' • MATRIX'}
           {vectorMode && ' • VECTOR'}
           {complexMode && ' • COMPLEX'}
+          {statMode && ' • STATISTICS'}
         </div>
       </div>
     </div>
