@@ -1,9 +1,20 @@
 // src/utils/bookLoader.js
-import longQuestions from "../data/syllabus/physics/chapters/chapter1-electrostatics/longQuestions.json";
 
 export const loadAllBooks = async () => {
   // Simulate small loading delay
   await new Promise((resolve) => setTimeout(resolve, 500));
+
+  // 🔹 Auto-import all files inside electrostatics folder
+  const longQuestionModules = import.meta.glob(
+    "../data/syllabus/physics/chapters/chapter1-electrostatics/Q*.jsx",
+    { eager: true }
+  );
+
+  // Convert imported modules to array of question objects
+  const longQuestions = Object.values(longQuestionModules).map((mod, index) => ({
+    ...mod.default,
+    id: mod.default?.id || index + 1,
+  }));
 
   return {
     physics: {
@@ -33,7 +44,7 @@ export const loadAllBooks = async () => {
           difficulty: "medium",
           importance: "high",
           questions: {
-            long: longQuestions, // ✅ Loaded from JSON file
+            long: longQuestions, // ✅ Auto-loaded from files
             short: [],
             mcqs: [],
             numericals: [],
@@ -44,7 +55,6 @@ export const loadAllBooks = async () => {
   };
 };
 
-// (Optional helper) - load specific book if needed
 export const loadBook = async (bookName) => {
   const allBooks = await loadAllBooks();
   return allBooks[bookName];
