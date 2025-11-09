@@ -1,13 +1,13 @@
 // src/components/ScientificCalculator.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ScientificCalculator = () => {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [isShift, setIsShift] = useState(false);
   const [isAlpha, setIsAlpha] = useState(false);
-  const [isRad, setIsRad] = useState(true);
   const [displayMode, setDisplayMode] = useState('NORM');
+  const [history, setHistory] = useState([]);
   const [memory, setMemory] = useState(0);
   const [ans, setAns] = useState(0);
 
@@ -17,6 +17,7 @@ const ScientificCalculator = () => {
       try {
         const evalResult = evaluateExpression(input);
         setResult(evalResult.toString());
+        setHistory(prev => [...prev.slice(-9), `${input} = ${evalResult}`]);
         setAns(evalResult);
       } catch (error) {
         setResult('Error');
@@ -33,8 +34,6 @@ const ScientificCalculator = () => {
     } else if (value === 'MODE') {
       const modes = ['NORM', 'MATH', 'FRAC'];
       setDisplayMode(modes[(modes.indexOf(displayMode) + 1) % modes.length]);
-    } else if (value === 'DEG/RAD') {
-      setIsRad(!isRad);
     } else if (value === 'M+') {
       const currentValue = parseFloat(result) || 0;
       setMemory(prev => prev + currentValue);
@@ -48,9 +47,9 @@ const ScientificCalculator = () => {
     } else if (value === 'ANS') {
       setInput(prev => prev + ans.toString());
     } else if (value === 'π') {
-      setInput(prev => prev + 'π');
+      setInput(prev => prev + Math.PI.toString());
     } else if (value === 'e') {
-      setInput(prev => prev + 'e');
+      setInput(prev => prev + Math.E.toString());
     } else {
       setInput(prev => prev + value);
     }
@@ -65,19 +64,13 @@ const ScientificCalculator = () => {
         .replace(/π/g, Math.PI.toString())
         .replace(/e/g, Math.E.toString())
         .replace(/√/g, 'Math.sqrt')
-        .replace(/sin/g, isRad ? 'Math.sin' : '(Math.PI/180)*Math.sin')
-        .replace(/cos/g, isRad ? 'Math.cos' : '(Math.PI/180)*Math.cos')
-        .replace(/tan/g, isRad ? 'Math.tan' : '(Math.PI/180)*Math.tan')
+        .replace(/sin/g, 'Math.sin')
+        .replace(/cos/g, 'Math.cos')
+        .replace(/tan/g, 'Math.tan')
         .replace(/log/g, 'Math.log10')
         .replace(/ln/g, 'Math.log')
-        .replace(/x²/g, '**2')
-        .replace(/x³/g, '**3')
-        .replace(/xʸ/g, '**')
-        .replace(/10ˣ/g, '10**')
-        .replace(/eˣ/g, 'Math.exp')
         .replace(/MOD/g, '%')
-        .replace(/ANS/g, ans.toString())
-        .replace(/E/g, '*10**');
+        .replace(/ANS/g, ans.toString());
 
       return eval(expression);
     } catch (error) {
@@ -85,10 +78,9 @@ const ScientificCalculator = () => {
     }
   };
 
-  // Get button layout based on shift state - MATCHING YOUR IMAGE EXACTLY
+  // Get button layout based on shift state
   const getButtonLayout = () => {
     if (isShift) {
-      // Shift mode layout
       return [
         // Row 1
         [
@@ -108,7 +100,7 @@ const ScientificCalculator = () => {
           { label: '(', value: '(', type: 'function' },
           { label: ')', value: ')', type: 'function' }
         ],
-        // Row 3
+        // Row 3 - Numbers and basic operations
         [
           { label: '7', value: '7', type: 'number' },
           { label: '8', value: '8', type: 'number' },
@@ -155,8 +147,8 @@ const ScientificCalculator = () => {
         ],
         // Row 8
         [
-          { label: 'PreAns', value: 'ANS', type: 'memory' },
-          { label: 'History', value: 'History', type: 'function' },
+          { label: 'PreAns', value: 'PreAns', type: 'function' },
+          { label: 'History', value: 'History', type: 'history' },
           { label: '=', value: '=', type: 'equals' },
           { label: 'Rec', value: 'Rec', type: 'function' },
           { label: 'Floor', value: 'Math.floor(', type: 'function' },
@@ -164,34 +156,34 @@ const ScientificCalculator = () => {
         ]
       ];
     } else {
-      // Normal mode layout (EXACTLY like your image)
+      // Normal mode layout (matching the image exactly)
       return [
-        // Row 1 - Top functions (CALC, ∫dx, d/dx, etc.)
+        // Row 1 - Top functions
         [
           { label: 'CALC', value: 'CALC', type: 'function' },
           { label: '∫dx', value: '∫', type: 'function' },
           { label: 'd/dx', value: 'd/dx', type: 'function' },
-          { label: 'x²', value: 'x²', type: 'function' },
-          { label: 'x³', value: 'x³', type: 'function' },
-          { label: 'xʸ', value: 'xʸ', type: 'function' }
+          { label: 'x²', value: '**2', type: 'function' },
+          { label: 'x³', value: '**3', type: 'function' },
+          { label: 'xʸ', value: '**', type: 'function' }
         ],
-        // Row 2 - More functions (√, ³√, log, ln, etc.)
+        // Row 2 - More functions
         [
           { label: '√', value: '√(', type: 'function' },
-          { label: '³√', value: '³√(', type: 'function' },
+          { label: '³√', value: 'Math.cbrt(', type: 'function' },
           { label: 'log', value: 'log(', type: 'function' },
           { label: 'ln', value: 'ln(', type: 'function' },
-          { label: 'eˣ', value: 'eˣ', type: 'function' },
-          { label: '10ˣ', value: '10ˣ', type: 'function' }
+          { label: 'eˣ', value: 'Math.exp(', type: 'function' },
+          { label: '10ˣ', value: '10**', type: 'function' }
         ],
         // Row 3 - Trigonometric functions
         [
           { label: 'sin', value: 'sin(', type: 'trig' },
           { label: 'cos', value: 'cos(', type: 'trig' },
           { label: 'tan', value: 'tan(', type: 'trig' },
-          { label: 'sin⁻¹', value: 'sin⁻¹(', type: 'trig' },
-          { label: 'cos⁻¹', value: 'cos⁻¹(', type: 'trig' },
-          { label: 'tan⁻¹', value: 'tan⁻¹(', type: 'trig' }
+          { label: 'sin⁻¹', value: 'Math.asin(', type: 'trig' },
+          { label: 'cos⁻¹', value: 'Math.acos(', type: 'trig' },
+          { label: 'tan⁻¹', value: 'Math.atan(', type: 'trig' }
         ],
         // Row 4 - Numbers and basic operations
         [
@@ -229,7 +221,7 @@ const ScientificCalculator = () => {
           { label: 'ANS', value: 'ANS', type: 'memory' },
           { label: 'LCM', value: 'LCM', type: 'combo' }
         ],
-        // Row 8 - Bottom control row
+        // Row 8 - Bottom row
         [
           { label: 'SHIFT', value: 'SHIFT', type: 'shift' },
           { label: 'ALPHA', value: 'ALPHA', type: 'alpha' },
@@ -244,22 +236,23 @@ const ScientificCalculator = () => {
 
   // Get button styling based on type
   const getButtonClass = (type) => {
-    const baseClass = "p-2 text-xs font-medium rounded transition-all duration-150 min-h-[40px] flex items-center justify-center border ";
+    const baseClass = "p-2 text-xs font-medium rounded transition-all duration-150 min-h-[40px] flex items-center justify-center ";
     
     const styles = {
-      number: "bg-gray-600 hover:bg-gray-500 text-white border-gray-500",
-      operator: "bg-orange-500 hover:bg-orange-600 text-white border-orange-400",
-      function: "bg-blue-500 hover:bg-blue-600 text-white border-blue-400",
-      trig: "bg-purple-500 hover:bg-purple-600 text-white border-purple-400",
-      combo: "bg-green-500 hover:bg-green-600 text-white border-green-400",
-      clear: "bg-red-500 hover:bg-red-600 text-white border-red-400",
-      delete: "bg-red-400 hover:bg-red-500 text-white border-red-300",
-      equals: "bg-green-600 hover:bg-green-700 text-white border-green-500",
-      memory: "bg-indigo-500 hover:bg-indigo-600 text-white border-indigo-400",
-      mode: "bg-teal-500 hover:bg-teal-600 text-white border-teal-400",
-      shift: isShift ? "bg-yellow-600 text-white border-2 border-yellow-400" : "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-400",
-      alpha: isAlpha ? "bg-pink-600 text-white border-2 border-pink-400" : "bg-pink-500 hover:bg-pink-600 text-white border-pink-400",
-      constant: "bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-400"
+      number: "bg-gray-600 hover:bg-gray-500 text-white",
+      operator: "bg-orange-500 hover:bg-orange-600 text-white",
+      function: "bg-blue-500 hover:bg-blue-600 text-white",
+      trig: "bg-purple-500 hover:bg-purple-600 text-white",
+      combo: "bg-green-500 hover:bg-green-600 text-white",
+      clear: "bg-red-500 hover:bg-red-600 text-white",
+      delete: "bg-red-400 hover:bg-red-500 text-white",
+      equals: "bg-green-600 hover:bg-green-700 text-white",
+      memory: "bg-indigo-500 hover:bg-indigo-600 text-white",
+      mode: "bg-teal-500 hover:bg-teal-600 text-white",
+      shift: isShift ? "bg-yellow-600 text-white border-2 border-yellow-400" : "bg-yellow-500 hover:bg-yellow-600 text-white",
+      alpha: isAlpha ? "bg-pink-600 text-white border-2 border-pink-400" : "bg-pink-500 hover:bg-pink-600 text-white",
+      constant: "bg-cyan-500 hover:bg-cyan-600 text-white",
+      history: "bg-gray-500 hover:bg-gray-600 text-white"
     };
 
     return baseClass + (styles[type] || styles.function);
@@ -268,58 +261,50 @@ const ScientificCalculator = () => {
   const buttonLayout = getButtonLayout();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4">
-      {/* CLEAN CALCULATOR ONLY - NO DUPLICATE HEADERS */}
-      <div className="max-w-2xl mx-auto">
-        
-        {/* Calculator Container */}
-        <div className="bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700">
-          {/* Status Bar */}
-          <div className="flex justify-between items-center mb-4 px-2">
-            <div className="flex space-x-4">
-              <span className={`text-sm font-bold ${displayMode === 'NORM' ? 'text-green-400' : 'text-gray-500'}`}>NORM</span>
-              <span className={`text-sm font-bold ${displayMode === 'MATH' ? 'text-green-400' : 'text-gray-500'}`}>MATH</span>
-              <span className={`text-sm font-bold ${displayMode === 'FRAC' ? 'text-green-400' : 'text-gray-500'}`}>FRAC</span>
-            </div>
-            <div className="flex items-center space-x-3 text-xs text-gray-400">
-              <span>{isRad ? 'RAD' : 'DEG'}</span>
-              {memory !== 0 && <span className="text-blue-400">M</span>}
-              {isShift && <span className="text-yellow-400">SHIFT</span>}
-              {isAlpha && <span className="text-pink-400">ALPHA</span>}
-            </div>
-          </div>
+    <div className="bg-gray-800 rounded-lg shadow-2xl p-4 max-w-md mx-auto border border-gray-600">
+      {/* Status Bar */}
+      <div className="flex justify-between items-center mb-3 px-2">
+        <div className="flex space-x-3">
+          <span className={`text-sm font-bold ${displayMode === 'NORM' ? 'text-green-400' : 'text-gray-500'}`}>NORM</span>
+          <span className={`text-sm font-bold ${displayMode === 'MATH' ? 'text-green-400' : 'text-gray-500'}`}>MATH</span>
+          <span className={`text-sm font-bold ${displayMode === 'FRAC' ? 'text-green-400' : 'text-gray-500'}`}>FRAC</span>
+        </div>
+        <div className="text-xs text-gray-400">
+          {memory !== 0 && 'M '}
+          {isShift && 'SHIFT '}
+          {isAlpha && 'ALPHA'}
+        </div>
+      </div>
 
-          {/* Display */}
-          <div className="bg-gray-900 rounded-lg p-4 mb-6 border border-gray-700">
-            <div className="text-right">
-              <div className="text-gray-400 text-sm min-h-6 break-all mb-2 font-mono">
-                {input || '0'}
-              </div>
-              <div className="text-2xl font-bold text-white min-h-8 truncate font-mono">
-                {result || '0'}
-              </div>
-            </div>
+      {/* Display */}
+      <div className="bg-gray-900 rounded-lg p-4 mb-4 border border-gray-700">
+        <div className="text-right">
+          <div className="text-gray-400 text-sm min-h-5 break-all mb-2 font-mono">
+            {input || '0'}
           </div>
+          <div className="text-2xl font-bold text-white min-h-8 truncate font-mono">
+            {result || '0'}
+          </div>
+        </div>
+      </div>
 
-          {/* Calculator Grid */}
-          <div className="grid grid-cols-6 gap-2">
-            {buttonLayout.flat().map((btn, index) => (
-              <button
-                key={index}
-                onClick={() => handleButtonClick(btn.value)}
-                className={getButtonClass(btn.type)}
-              >
-                <span className="text-xs font-medium">{btn.label}</span>
-              </button>
-            ))}
-          </div>
+      {/* Calculator Grid */}
+      <div className="grid grid-cols-6 gap-2">
+        {buttonLayout.flat().map((btn, index) => (
+          <button
+            key={index}
+            onClick={() => handleButtonClick(btn.value)}
+            className={getButtonClass(btn.type)}
+          >
+            <span className="text-xs font-medium">{btn.label}</span>
+          </button>
+        ))}
+      </div>
 
-          {/* Simple Footer Status */}
-          <div className="mt-4 text-center">
-            <div className="text-xs text-gray-500">
-              Scientific Calculator
-            </div>
-          </div>
+      {/* Additional Status Info */}
+      <div className="mt-3 text-center">
+        <div className="text-xs text-gray-500">
+          {isShift ? 'SHIFT Mode Active' : isAlpha ? 'ALPHA Mode Active' : 'Ready'}
         </div>
       </div>
     </div>
