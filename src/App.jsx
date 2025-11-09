@@ -1,9 +1,10 @@
+// src/App.jsx
 import React from "react";
-import { Link } from "react-router-dom"; // ✅ Use Link for SPA navigation
+import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
-import CalendarWidget from "./components/CalendarWidget"; 
+import CalendarWidget from "./components/CalendarWidget";
 import UpdatePrompt from "./components/UpdatePrompt";
 import MotivationBooster from "./components/MotivationBooster";
 import ReminderNotification from "./components/ReminderNotification";
@@ -17,6 +18,14 @@ import FloatingActionButton from "./components/FloatingActionButton";
 import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
+import BottomNavbar from "./components/BottomNavbar";
+
+// 📘 New pages
+import SyllabusPage from "./pages/SyllabusPage";
+import PracticePage from "./pages/PracticePage";
+import AiTutorPage from "./pages/AiTutorPage";
+import ProfilePage from "./pages/ProfilePage";
+
 import "./index.css";
 
 export default function App() {
@@ -24,37 +33,41 @@ export default function App() {
   reminderTime.setHours(6, 30, 0, 0);
 
   return (
-    <div className="min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300">
+    <div className="min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300 pb-20">
       <div className="container mx-auto max-w-2xl px-5 py-8">
         <Header />
 
-        <div className="space-y-8">
-          <CurrentReminder />
-          <DashboardOverview />
-          <MotivationBooster />
-          <TodoList />
-          <CalendarWidget />
+        <Routes>
+          {/* 🏠 Dashboard (Main) */}
+          <Route
+            path="/"
+            element={
+              <div className="space-y-8">
+                <CurrentReminder />
+                <DashboardOverview />
+                <MotivationBooster />
+                <TodoList />
+                <CalendarWidget />
 
-          {/* ✅ Corrected SPA Link */}
-          <div className="text-center mb-6">
-            <Link
-              to="/calculator"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
-            >
-              Open Scientific Calculator
-            </Link>
-          </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <DailyGoalTracker />
+                  <StudyNotifier />
+                </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <DailyGoalTracker />
-            <StudyNotifier />
-          </div>
+                <SyllabusProgress />
+                <ScheduleList />
+                <SubjectProgress />
+                <PerformanceSummary />
+              </div>
+            }
+          />
 
-          <SyllabusProgress />
-          <ScheduleList />
-          <SubjectProgress />
-          <PerformanceSummary />
-        </div>
+          {/* 📖 New Pages */}
+          <Route path="/syllabus" element={<SyllabusPage />} />
+          <Route path="/practice" element={<PracticePage />} />
+          <Route path="/ai" element={<AiTutorPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Routes>
       </div>
 
       <ChatBot />
@@ -66,6 +79,8 @@ export default function App() {
         message="Time for Mind Time! ☕ Take a break & prepare for college."
         showTime={reminderTime}
       />
+
+      <BottomNavbar />
 
       <style>{`
         :root {
