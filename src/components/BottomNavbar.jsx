@@ -1,6 +1,6 @@
 // src/components/BottomNavbar.jsx
 import React from "react";
-import { BookOpen, Layers, Brain, User, Target, Calculator } from "lucide-react";
+import { BookOpen, Layers, User, Target, Calculator } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 export default function BottomNavbar() {
@@ -9,7 +9,6 @@ export default function BottomNavbar() {
     { to: "/syllabus", icon: <BookOpen size={22} />, label: "Syllabus" },
     { to: "/practice", icon: <Layers size={22} />, label: "Practice" },
     { to: "/calculator", icon: <Calculator size={22} />, label: "Calculator" },
-    { to: "/ai", icon: <Brain size={22} />, label: "AI Tutor" },
     { to: "/profile", icon: <User size={22} />, label: "Profile" },
   ];
 
