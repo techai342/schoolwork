@@ -269,15 +269,11 @@ const ScientificCalculator = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4">
-      {/* Single Header - No Duplicates */}
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Scientific Calculator</h1>
-          <p className="text-gray-400">Advanced mathematical calculations</p>
-        </div>
-
+      {/* CLEAN CALCULATOR ONLY - NO DUPLICATE HEADERS */}
+      <div className="max-w-2xl mx-auto">
+        
         {/* Calculator Container */}
-        <div className="bg-gray-800 rounded-xl shadow-2xl p-6 max-w-2xl mx-auto border border-gray-700">
+        <div className="bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-700">
           {/* Status Bar */}
           <div className="flex justify-between items-center mb-4 px-2">
             <div className="flex space-x-4">
@@ -318,12 +314,10 @@ const ScientificCalculator = () => {
             ))}
           </div>
 
-          {/* Footer Status */}
+          {/* Simple Footer Status */}
           <div className="mt-4 text-center">
             <div className="text-xs text-gray-500">
-              {isShift ? 'SHIFT Mode - Secondary Functions' : 
-               isAlpha ? 'ALPHA Mode - Variable Input' : 
-               'Scientific Calculator Ready'}
+              Scientific Calculator
             </div>
           </div>
         </div>
