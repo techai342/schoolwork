@@ -25,7 +25,7 @@ import SyllabusPage from "./pages/SyllabusPage";
 import PracticePage from "./pages/PracticePage";
 import AiTutorPage from "./pages/AiTutorPage";
 import ProfilePage from "./pages/ProfilePage";
-import ScientificCalculatorPage from "./pages/ScientificCalculatorPage"; // Add this import
+import ScientificCalculatorPage from "./pages/ScientificCalculatorPage";
 
 import "./index.css";
 
@@ -68,9 +68,9 @@ export default function App() {
           {/* Other Pages */}
           <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/practice" element={<PracticePage />} />
+          <Route path="/calculator" element={<ScientificCalculatorPage />} />
           <Route path="/ai" element={<AiTutorPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/calculator" element={<ScientificCalculatorPage />} /> {/* Add this route */}
         </Routes>
       </div>
 
