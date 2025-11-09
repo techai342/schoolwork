@@ -1,12 +1,6 @@
 // src/pages/SyllabusPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { BookOpen, Brain, Clock, Download, MessageCircle, ChevronRight, Target, CheckCircle, FolderOpen } from "lucide-react";
-
-// Import your syllabus data
-import physicsBookInfo from './data/syllabus/physics/bookInfo.json';
-import physicsChapter1 from './data/syllabus/physics/chapters/chapter1.json';
-import physicsChapter2 from './data/syllabus/physics/chapters/chapter2.json';
-// Import other chapters similarly
 
 export default function SyllabusPage() {
   const [selectedBook, setSelectedBook] = useState("physics");
@@ -17,11 +11,122 @@ export default function SyllabusPage() {
   const [aiExplanation, setAiExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data - replace with your actual imports
+  // Complete mock data - JSON files banane ki zaroorat nahi
   const booksData = {
     physics: {
-      bookInfo: physicsBookInfo,
-      chapters: [physicsChapter1, physicsChapter2] // Add all chapters
+      bookInfo: {
+        bookName: "Physics - Class 11th",
+        author: "NCERT",
+        totalChapters: 10,
+        totalPages: 350,
+        description: "Complete physics syllabus with numerical problems and theory"
+      },
+      chapters: [
+        {
+          chapterNumber: 1,
+          chapterName: "Physical World and Measurement",
+          duration: "4 hours",
+          topics: ["Physical World", "Units and Measurements", "Measurement of Length, Mass and Time"],
+          progress: 0,
+          questions: {
+            long: [
+              {
+                question: "Explain the scope and excitement of physics in daily life with examples.",
+                answer: "Physics has vast scope in our daily life. From the smartphones we use to the vehicles we travel in, physics principles are applied everywhere. Examples include: 1) Electricity - powers our homes and devices, 2) Mechanics - helps in construction and transportation, 3) Optics - used in cameras and glasses.",
+                marks: 5
+              }
+            ],
+            short: [
+              {
+                question: "What is the SI unit of length?",
+                answer: "Meter (m)",
+                marks: 1
+              },
+              {
+                question: "Define physical quantity.",
+                answer: "A physical quantity is a property of a material or system that can be quantified by measurement.",
+                marks: 1
+              }
+            ],
+            mcqs: [
+              {
+                question: "Which of the following is not a fundamental unit?",
+                options: ["Meter", "Second", "Newton", "Kilogram"],
+                answer: "Newton",
+                marks: 1
+              },
+              {
+                question: "What is the dimension of force?",
+                options: ["MLT⁻²", "ML²T⁻²", "MLT⁻¹", "M²LT⁻²"],
+                answer: "MLT⁻²",
+                marks: 1
+              }
+            ]
+          }
+        },
+        {
+          chapterNumber: 2,
+          chapterName: "Motion in a Straight Line",
+          duration: "5 hours",
+          topics: ["Position, Path Length and Displacement", "Speed and Velocity", "Acceleration"],
+          progress: 25,
+          questions: {
+            long: [
+              {
+                question: "Derive the equations of motion for a body moving with uniform acceleration.",
+                answer: "The three equations of motion are: 1) v = u + at, 2) s = ut + ½at², 3) v² = u² + 2as. Where u=initial velocity, v=final velocity, a=acceleration, t=time, s=distance.",
+                marks: 5
+              }
+            ],
+            short: [
+              {
+                question: "What is acceleration?",
+                answer: "Acceleration is the rate of change of velocity with time.",
+                marks: 1
+              }
+            ],
+            mcqs: [
+              {
+                question: "Which quantity has both magnitude and direction?",
+                options: ["Scalar", "Vector", "Both", "None"],
+                answer: "Vector",
+                marks: 1
+              }
+            ]
+          }
+        },
+        {
+          chapterNumber: 3,
+          chapterName: "Laws of Motion",
+          duration: "6 hours",
+          topics: ["Newton's First Law", "Newton's Second Law", "Newton's Third Law", "Friction"],
+          progress: 0,
+          questions: {
+            long: [
+              {
+                question: "Explain Newton's three laws of motion with examples from daily life.",
+                answer: "Newton's First Law: An object at rest stays at rest... Second Law: F=ma... Third Law: Every action has equal and opposite reaction...",
+                marks: 6
+              }
+            ],
+            short: [
+              {
+                question: "What is Newton's First Law of Motion?",
+                answer: "An object at rest stays at rest and an object in motion stays in motion unless acted upon by an unbalanced force.",
+                marks: 2
+              }
+            ],
+            mcqs: [
+              {
+                question: "Which law explains why we wear seatbelts?",
+                options: ["First Law", "Second Law", "Third Law", "Law of Gravitation"],
+                answer: "First Law",
+                marks: 1
+              }
+            ]
+          }
+        }
+      ]
     },
     chemistry: {
       bookInfo: {
@@ -29,20 +134,21 @@ export default function SyllabusPage() {
         author: "NCERT",
         totalChapters: 8,
         totalPages: 300,
-        description: "Complete chemistry syllabus"
+        description: "Complete chemistry syllabus with organic and inorganic chemistry"
       },
       chapters: [
         {
           chapterNumber: 1,
           chapterName: "Some Basic Concepts of Chemistry",
           duration: "3 hours",
-          progress: 0,
+          topics: ["Matter and its Classification", "Properties of Matter", "Uncertainty in Measurement"],
+          progress: 40,
           questions: {
             long: [
               {
-                question: "Explain the law of conservation of mass.",
-                answer: "The law states that mass can neither be created nor destroyed in a chemical reaction.",
-                marks: 3
+                question: "Explain the law of conservation of mass with an example.",
+                answer: "The law of conservation of mass states that mass can neither be created nor destroyed in a chemical reaction. Example: When wood burns, the mass of smoke and ash equals the original mass of wood.",
+                marks: 4
               }
             ],
             short: [
@@ -67,22 +173,23 @@ export default function SyllabusPage() {
     math: {
       bookInfo: {
         bookName: "Mathematics - Class 11th",
-        author: "NCERT", 
+        author: "NCERT",
         totalChapters: 12,
         totalPages: 400,
-        description: "Complete mathematics syllabus"
+        description: "Complete mathematics syllabus with algebra, calculus and geometry"
       },
       chapters: [
         {
           chapterNumber: 1,
           chapterName: "Sets",
-          duration: "5 hours", 
-          progress: 0,
+          duration: "5 hours",
+          topics: ["Sets and their Representations", "Types of Sets", "Venn Diagrams"],
+          progress: 75,
           questions: {
             long: [
               {
                 question: "Explain different types of sets with examples.",
-                answer: "There are finite sets, infinite sets, empty sets...",
+                answer: "1) Finite sets: Set with countable elements. Example: A={1,2,3}. 2) Infinite sets: Set with unlimited elements. Example: Set of natural numbers. 3) Empty set: Set with no elements. Example: {}",
                 marks: 4
               }
             ],
