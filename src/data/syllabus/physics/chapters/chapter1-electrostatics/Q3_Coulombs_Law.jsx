@@ -30,11 +30,11 @@ const Q3CoulombsLaw = () => {
         
         <p>Combining (i) and (ii)</p>
         
+
         <div className="formula">
-          \[F \propto \frac{q_1q_2}{r^2}\]
-          \[F = K \frac{q_1q_2}{r^2}\]
-        </div>
-        
+  {"\\[K = \\frac{1}{4\\pi\\epsilon_0}\\]"}
+  </div>
+
         <p>
           Which is magnitude of coulomb force between charges. Where \( K \) is the constant of proportionality and its value is \( 9 \times 10^9 \, \text{Nm}^2/\text{C}^2 \). Its value depends upon the nature of the medium between the two charges and system of units in which \( F \), \( q \) and \( r \) are measured. If the medium between the two point charges is free space then:
         </p>
@@ -107,5 +107,6 @@ const Q3CoulombsLaw = () => {
     </div>
   );
 };
+
 
 export default Q3CoulombsLaw;
