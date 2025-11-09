@@ -1,160 +1,133 @@
 // src/pages/SyllabusPage.jsx
-import React, { useState } from "react";
-import { BookOpen, Brain, Clock, Download, MessageCircle, ChevronRight, Target, CheckCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { BookOpen, Brain, Clock, Download, MessageCircle, ChevronRight, Target, CheckCircle, FolderOpen } from "lucide-react";
+
+// Import your syllabus data
+import physicsBookInfo from './data/syllabus/physics/bookInfo.json';
+import physicsChapter1 from './data/syllabus/physics/chapters/chapter1.json';
+import physicsChapter2 from './data/syllabus/physics/chapters/chapter2.json';
+// Import other chapters similarly
 
 export default function SyllabusPage() {
-  const [selectedSubject, setSelectedSubject] = useState("Physics");
-  const [selectedTopic, setSelectedTopic] = useState(null);
+  const [selectedBook, setSelectedBook] = useState("physics");
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [selectedQuestionType, setSelectedQuestionType] = useState("long");
   const [showAIExplain, setShowAIExplain] = useState(false);
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiExplanation, setAiExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const syllabus = {
-    Physics: {
-      topics: [
+  // Mock data - replace with your actual imports
+  const booksData = {
+    physics: {
+      bookInfo: physicsBookInfo,
+      chapters: [physicsChapter1, physicsChapter2] // Add all chapters
+    },
+    chemistry: {
+      bookInfo: {
+        bookName: "Chemistry - Class 11th",
+        author: "NCERT",
+        totalChapters: 8,
+        totalPages: 300,
+        description: "Complete chemistry syllabus"
+      },
+      chapters: [
         {
-          name: "Laws of Motion",
-          description: "Newton's three laws of motion and their applications",
+          chapterNumber: 1,
+          chapterName: "Some Basic Concepts of Chemistry",
           duration: "3 hours",
-          progress: 75,
-          questions: [
-            {
-              type: "short",
-              question: "What is Newton's First Law of Motion?",
-              answer: "An object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force."
-            },
-            {
-              type: "mcq",
-              question: "Which law explains why we wear seatbelts?",
-              options: ["First Law", "Second Law", "Third Law", "Law of Gravitation"],
-              answer: "First Law"
-            },
-            {
-              type: "long",
-              question: "Explain Newton's Third Law with examples from daily life.",
-              answer: "For every action, there is an equal and opposite reaction. Examples: 1) When you push a wall, the wall pushes back with equal force. 2) Rocket propulsion - gases push downward, rocket moves upward."
-            }
-          ]
-        },
-        {
-          name: "Electricity",
-          description: "Electric current, circuits, and electrical properties",
-          duration: "4 hours",
-          progress: 50,
-          questions: [
-            {
-              type: "short",
-              question: "Define electric current.",
-              answer: "Electric current is the flow of electric charge through a conductor."
-            },
-            {
-              type: "mcq",
-              question: "What is the unit of electrical resistance?",
-              options: ["Volt", "Ampere", "Ohm", "Watt"],
-              answer: "Ohm"
-            }
-          ]
-        },
-        {
-          name: "Waves",
-          description: "Wave properties, sound waves, and light waves",
-          duration: "3 hours",
-          progress: 30,
-          questions: [
-            {
-              type: "short",
-              question: "What is wavelength?",
-              answer: "Wavelength is the distance between two consecutive crests or troughs of a wave."
-            }
-          ]
-        },
-        {
-          name: "Optics",
-          description: "Reflection, refraction, and lenses",
-          duration: "3 hours",
-          progress: 20,
-          questions: [
-            {
-              type: "short",
-              question: "What is the law of reflection?",
-              answer: "The angle of incidence equals the angle of reflection."
-            }
-          ]
+          progress: 0,
+          questions: {
+            long: [
+              {
+                question: "Explain the law of conservation of mass.",
+                answer: "The law states that mass can neither be created nor destroyed in a chemical reaction.",
+                marks: 3
+              }
+            ],
+            short: [
+              {
+                question: "What is molar mass?",
+                answer: "Mass of one mole of a substance.",
+                marks: 1
+              }
+            ],
+            mcqs: [
+              {
+                question: "Which is not a state of matter?",
+                options: ["Solid", "Liquid", "Gas", "Energy"],
+                answer: "Energy",
+                marks: 1
+              }
+            ]
+          }
         }
       ]
     },
-    Chemistry: {
-      topics: [
+    math: {
+      bookInfo: {
+        bookName: "Mathematics - Class 11th",
+        author: "NCERT", 
+        totalChapters: 12,
+        totalPages: 400,
+        description: "Complete mathematics syllabus"
+      },
+      chapters: [
         {
-          name: "Atoms",
-          description: "Atomic structure and properties",
-          duration: "2 hours",
-          progress: 80,
-          questions: [
-            {
-              type: "short",
-              question: "What are the three subatomic particles?",
-              answer: "Protons, neutrons, and electrons."
-            }
-          ]
-        },
-        {
-          name: "Periodic Table",
-          description: "Elements and periodic trends",
-          duration: "3 hours",
-          progress: 60,
-          questions: [
-            {
-              type: "short",
-              question: "How many groups are in the periodic table?",
-              answer: "18 groups"
-            }
-          ]
-        }
-      ]
-    },
-    Math: {
-      topics: [
-        {
-          name: "Algebra",
-          description: "Equations, functions, and graphs",
-          duration: "5 hours",
-          progress: 90,
-          questions: [
-            {
-              type: "short",
-              question: "What is the quadratic formula?",
-              answer: "x = [-b ± √(b² - 4ac)] / 2a"
-            }
-          ]
+          chapterNumber: 1,
+          chapterName: "Sets",
+          duration: "5 hours", 
+          progress: 0,
+          questions: {
+            long: [
+              {
+                question: "Explain different types of sets with examples.",
+                answer: "There are finite sets, infinite sets, empty sets...",
+                marks: 4
+              }
+            ],
+            short: [
+              {
+                question: "What is a singleton set?",
+                answer: "A set with only one element.",
+                marks: 1
+              }
+            ],
+            mcqs: [
+              {
+                question: "Which symbol represents empty set?",
+                options: ["Φ", "Ω", "Δ", "∞"],
+                answer: "Φ",
+                marks: 1
+              }
+            ]
+          }
         }
       ]
     }
   };
 
-  const explainWithAI = async (question) => {
+  const explainWithAI = async (question, answer) => {
     setAiQuestion(question);
     setShowAIExplain(true);
     setIsLoading(true);
     
     try {
-      // ChatGPT API call
       const response = await fetch('https://api.nekolabs.web.id/ai/cf/gpt-oss-120b', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: `Please explain this concept in simple terms with examples: ${question}`,
+          message: `Question: ${question}\nAnswer: ${answer}\n\nPlease explain this question and answer in simple terms with examples that a student can understand easily.`,
           context: "You are a helpful tutor explaining concepts to students. Keep it clear and engaging."
         })
       });
 
       const data = await response.json();
-      setAiExplanation(data.response || "I'll help you understand this concept better. Let me break it down for you...");
+      setAiExplanation(data.response || `I'll help you understand this concept: ${question}. Let me break it down for you...`);
     } catch (error) {
-      setAiExplanation("I'd love to explain this! In simple terms, this concept deals with fundamental principles that help us understand how things work in the physical world. Would you like me to go into more specific details?");
+      setAiExplanation(`I'd love to explain this! The question "${question}" has the answer: "${answer}". In simple terms, this is an important concept that helps build your foundation. Would you like me to go into more specific details?`);
     } finally {
       setIsLoading(false);
     }
@@ -162,16 +135,19 @@ export default function SyllabusPage() {
 
   const getQuestionIcon = (type) => {
     switch (type) {
-      case 'mcq': return '🔘';
+      case 'mcqs': return '🔘';
       case 'short': return '📝';
       case 'long': return '📄';
       default: return '❓';
     }
   };
 
+  const currentBook = booksData[selectedBook];
+  const questionTypes = ["long", "short", "mcqs"];
+
   return (
     <div className="min-h-screen pb-24 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto p-4">
+      <div className="max-w-6xl mx-auto p-4">
         {/* Header */}
         <div className="text-center mb-8 pt-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -240,47 +216,67 @@ export default function SyllabusPage() {
           </div>
         )}
 
-        {/* Subject Selection */}
+        {/* Book Selection */}
         <div className="flex gap-2 overflow-x-auto mb-6 pb-2">
-          {Object.keys(syllabus).map((subject) => (
+          {Object.keys(booksData).map((book) => (
             <button
-              key={subject}
+              key={book}
               onClick={() => {
-                setSelectedSubject(subject);
-                setSelectedTopic(null);
+                setSelectedBook(book);
+                setSelectedChapter(null);
               }}
               className={`px-6 py-3 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-                selectedSubject === subject
+                selectedBook === book
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
                   : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750"
               }`}
             >
-              {subject}
+              {booksData[book].bookInfo.bookName}
             </button>
           ))}
         </div>
 
-        {/* Topics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {syllabus[selectedSubject]?.topics.map((topic, index) => (
+        {/* Book Info */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 mb-6">
+          <div className="flex items-center gap-4">
+            <FolderOpen className="w-12 h-12 text-blue-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {currentBook.bookInfo.bookName}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Author: {currentBook.bookInfo.author} | 
+                Chapters: {currentBook.bookInfo.totalChapters} | 
+                Pages: {currentBook.bookInfo.totalPages}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {currentBook.bookInfo.description}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Chapters Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {currentBook.chapters.map((chapter) => (
             <div
-              key={topic.name}
+              key={chapter.chapterNumber}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedTopic(selectedTopic?.name === topic.name ? null : topic)}
+              onClick={() => setSelectedChapter(selectedChapter?.chapterNumber === chapter.chapterNumber ? null : chapter)}
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-1">
-                      {topic.name}
+                      Chapter {chapter.chapterNumber}: {chapter.chapterName}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      {topic.description}
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Topics: {chapter.topics?.join(', ')}
                     </p>
                   </div>
                   <ChevronRight 
                     className={`w-5 h-5 text-gray-400 transition-transform ${
-                      selectedTopic?.name === topic.name ? 'rotate-90' : ''
+                      selectedChapter?.chapterNumber === chapter.chapterNumber ? 'rotate-90' : ''
                     }`} 
                   />
                 </div>
@@ -289,16 +285,16 @@ export default function SyllabusPage() {
                   <div className="flex items-center gap-4 text-gray-500">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      {topic.duration}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Target className="w-4 h-4" />
-                      {topic.progress}%
+                      {chapter.duration}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 text-green-600">
                     <CheckCircle className="w-4 h-4" />
-                    <span>{topic.questions.length} Qs</span>
+                    <span>{
+                      (chapter.questions.long?.length || 0) + 
+                      (chapter.questions.short?.length || 0) + 
+                      (chapter.questions.mcqs?.length || 0)
+                    } Qs</span>
                   </div>
                 </div>
 
@@ -306,24 +302,44 @@ export default function SyllabusPage() {
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-3">
                   <div 
                     className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${topic.progress}%` }}
+                    style={{ width: `${chapter.progress}%` }}
                   ></div>
                 </div>
               </div>
 
               {/* Expanded Questions */}
-              {selectedTopic?.name === topic.name && (
+              {selectedChapter?.chapterNumber === chapter.chapterNumber && (
                 <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-750">
+                  {/* Question Type Tabs */}
+                  <div className="flex gap-2 mb-4 overflow-x-auto">
+                    {questionTypes.map((type) => (
+                      <button
+                        key={type}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedQuestionType(type);
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${
+                          selectedQuestionType === type
+                            ? "bg-blue-600 text-white"
+                            : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600"
+                        }`}
+                      >
+                        {type.toUpperCase()} Questions
+                      </button>
+                    ))}
+                  </div>
+
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
-                    Questions & Answers
+                    {selectedQuestionType.toUpperCase()} Questions
                   </h4>
                   
-                  <div className="space-y-4">
-                    {topic.questions.map((q, qIndex) => (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {chapter.questions[selectedQuestionType]?.map((q, qIndex) => (
                       <div key={qIndex} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                         <div className="flex items-start gap-3">
-                          <span className="text-lg">{getQuestionIcon(q.type)}</span>
+                          <span className="text-lg">{getQuestionIcon(selectedQuestionType)}</span>
                           <div className="flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1">
@@ -348,12 +364,13 @@ export default function SyllabusPage() {
                                 )}
                                 <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                                   <strong>Answer:</strong> {q.answer}
+                                  {q.marks && <span className="ml-2 text-blue-600">({q.marks} marks)</span>}
                                 </p>
                               </div>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  explainWithAI(q.question);
+                                  explainWithAI(q.question, q.answer);
                                 }}
                                 className="flex items-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors whitespace-nowrap"
                               >
