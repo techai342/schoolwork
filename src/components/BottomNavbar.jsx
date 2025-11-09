@@ -13,7 +13,7 @@ export default function BottomNavbar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-lg border-t border-gray-300 shadow-lg flex justify-around py-2 z-50">
+    <nav className="fixed bottom-0 left-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-t border-gray-300 dark:border-gray-700 shadow-lg flex justify-around py-2 z-[9999]">
       {tabs.map((tab) => (
         <NavLink
           key={tab.to}
