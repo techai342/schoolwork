@@ -33,9 +33,9 @@ export default function App() {
   reminderTime.setHours(6, 30, 0, 0);
 
   return (
-    <div className="relative min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300 pb-20">
-      {/* ✅ Scrollable content container */}
-      <div className="container mx-auto max-w-2xl px-5 pt-8 pb-28">
+    <div className="relative min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300">
+      {/* ✅ Scrollable content container with proper bottom padding for navbar */}
+      <div className="container mx-auto max-w-2xl px-5 pt-8 pb-24"> {/* Changed pb-28 to pb-24 */}
         <Header />
 
         {/* ✅ All Routes */}
@@ -72,8 +72,10 @@ export default function App() {
         </Routes>
       </div>
 
-      {/* ✅ Always visible components */}
+      {/* ✅ Bottom Navbar - Fixed at bottom */}
       <BottomNavbar />
+      
+      {/* ✅ Other always visible components */}
       <ChatBot />
       <FloatingActionButton />
       <InstallAppButton />
@@ -95,4 +97,4 @@ export default function App() {
       `}</style>
     </div>
   );
-}
+} 
