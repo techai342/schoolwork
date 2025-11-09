@@ -20,11 +20,12 @@ import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
 import BottomNavbar from "./components/BottomNavbar";
 
-// 📘 New Pages
+// 📘 Pages
 import SyllabusPage from "./pages/SyllabusPage";
 import PracticePage from "./pages/PracticePage";
 import AiTutorPage from "./pages/AiTutorPage";
 import ProfilePage from "./pages/ProfilePage";
+import ScientificCalculatorPage from "./pages/ScientificCalculatorPage"; // Add this import
 
 import "./index.css";
 
@@ -35,7 +36,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300">
       {/* ✅ Scrollable content container with proper bottom padding for navbar */}
-      <div className="container mx-auto max-w-2xl px-5 pt-8 pb-24"> {/* Changed pb-28 to pb-24 */}
+      <div className="container mx-auto max-w-2xl px-5 pt-8 pb-24">
         <Header />
 
         {/* ✅ All Routes */}
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/ai" element={<AiTutorPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/calculator" element={<ScientificCalculatorPage />} /> {/* Add this route */}
         </Routes>
       </div>
 
@@ -97,4 +99,4 @@ export default function App() {
       `}</style>
     </div>
   );
-} 
+}
