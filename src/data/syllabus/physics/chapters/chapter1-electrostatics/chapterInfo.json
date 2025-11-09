@@ -1,0 +1,18 @@
+{
+  "chapterNumber": 1,
+  "chapterName": "Electrostatics",
+  "duration": "8 hours",
+  "topics": [
+    "Coulomb's Law",
+    "Electric Field and Field Intensity", 
+    "Electric Field Lines",
+    "Electric Flux",
+    "Gauss's Law",
+    "Electric Potential",
+    "Capacitors and Capacitance",
+    "Millikan's Oil Drop Experiment"
+  ],
+  "progress": 0,
+  "difficulty": "medium",
+  "importance": "high"
+}
