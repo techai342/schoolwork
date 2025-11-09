@@ -5,128 +5,11 @@ import {
   FileText, Hash, Edit3, Calculator
 } from "lucide-react";
 
-// Mock data loader
-const mockBookLoader = {
-  loadAllBooks: async () => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return {
-      physics: {
-        bookInfo: {
-          bookName: "Physics - Class 12th",
-          author: "Punjab Textbook Board",
-          totalChapters: 15,
-          totalPages: 350,
-          description: "Complete physics syllabus with electrostatics, current electricity, electromagnetism, and modern physics",
-          lastUpdated: "2024-01-15",
-          subjectCode: "PHY-12"
-        },
-        chapters: [
-          {
-            chapterNumber: 1,
-            chapterName: "Electrostatics",
-            duration: "8 hours",
-            topics: ["Coulomb's Law", "Electric Field", "Gauss's Law", "Capacitors"],
-            progress: 35,
-            difficulty: "medium",
-            importance: "high",
-            questions: {
-              long: [
-                {
-                  id: "lq1",
-                  question: "State and explain Coulomb's law.",
-                  answer: "Coulomb's law states that the force between two point charges is directly proportional to the product of their charges and inversely proportional to the square of the distance between them. F = k(q1q2)/r²",
-                  marks: 6,
-                  difficulty: "medium"
-                },
-                {
-                  id: "lq2",
-                  question: "Define electric field intensity and derive its expression.",
-                  answer: "Electric field intensity at a point is defined as the force experienced per unit positive charge placed at that point. E = F/q",
-                  marks: 5,
-                  difficulty: "medium"
-                }
-              ],
-              short: [
-                {
-                  id: "sq1",
-                  question: "What is electric flux?",
-                  answer: "Electric flux is the number of electric field lines passing through a given area.",
-                  marks: 2,
-                  difficulty: "easy"
-                }
-              ],
-              mcqs: [
-                {
-                  id: "mcq1",
-                  question: "The SI unit of electric charge is:",
-                  options: ["Ampere", "Coulomb", "Volt", "Ohm"],
-                  answer: "Coulomb",
-                  marks: 1,
-                  difficulty: "easy"
-                }
-              ],
-              numericals: [
-                {
-                  id: "num1",
-                  question: "Calculate the force between two charges of 2μC and 3μC separated by 0.1m in air.",
-                  answer: "Using Coulomb's law: F = (9×10^9 × 2×10^-6 × 3×10^-6)/(0.1)^2 = 5.4N",
-                  marks: 3,
-                  difficulty: "medium"
-                }
-              ]
-            }
-          },
-          {
-            chapterNumber: 2,
-            chapterName: "Current Electricity",
-            duration: "6 hours",
-            topics: ["Ohm's Law", "Resistance", "Kirchhoff's Laws"],
-            progress: 20,
-            difficulty: "medium",
-            importance: "high",
-            questions: {
-              long: [],
-              short: [],
-              mcqs: [],
-              numericals: []
-            }
-          }
-        ]
-      },
-      chemistry: {
-        bookInfo: {
-          bookName: "Chemistry - Class 12th",
-          author: "Punjab Textbook Board",
-          totalChapters: 12,
-          totalPages: 300,
-          description: "Complete chemistry syllabus with organic, inorganic and physical chemistry",
-          lastUpdated: "2024-01-10",
-          subjectCode: "CHEM-12"
-        },
-        chapters: [
-          {
-            chapterNumber: 1,
-            chapterName: "Atomic Structure",
-            duration: "5 hours",
-            topics: ["Atomic Models", "Electron Configuration", "Quantum Numbers"],
-            progress: 0,
-            difficulty: "hard",
-            importance: "high",
-            questions: {
-              long: [],
-              short: [],
-              mcqs: [],
-              numericals: []
-            }
-          }
-        ]
-      }
-    };
-  }
-};
+// CORRECT IMPORT - Use the actual bookLoader
+import { loadAllBooks, loadBook } from "../utils/bookLoader";
 
 export default function SyllabusPage() {
-  const [currentView, setCurrentView] = useState("books"); // "books", "chapters", "questions"
+  const [currentView, setCurrentView] = useState("books");
   const [selectedBook, setSelectedBook] = useState("");
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [selectedQuestionType, setSelectedQuestionType] = useState("long");
@@ -141,7 +24,7 @@ export default function SyllabusPage() {
   const loadBooks = async () => {
     setIsLoadingBooks(true);
     try {
-      const data = await mockBookLoader.loadAllBooks();
+      const data = await loadAllBooks();
       setBooksData(data);
       const bookNames = Object.keys(data);
       setAvailableBooks(bookNames);
