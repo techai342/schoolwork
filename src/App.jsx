@@ -19,13 +19,14 @@ import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
 import BottomNavbar from "./components/BottomNavbar";
-import TimetableSettings from "./components/TimetableSettings";
+
 // 📘 Pages
 import SyllabusPage from "./pages/SyllabusPage";
 import PracticePage from "./pages/PracticePage";
 import AiTutorPage from "./pages/AiTutorPage";
 import ProfilePage from "./pages/ProfilePage";
 import ScientificCalculatorPage from "./pages/ScientificCalculatorPage";
+import TimetableSettings from "./pages/TimetableSettings";
  // ✅ Added new page
 
 import "./index.css";
