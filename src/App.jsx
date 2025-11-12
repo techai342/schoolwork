@@ -2,6 +2,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
+import TopNavbar from "./components/TopNavbar"; // ✅ New Top Navbar (below Header)
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
 import CalendarWidget from "./components/CalendarWidget";
@@ -26,6 +27,7 @@ import PracticePage from "./pages/PracticePage";
 import AiTutorPage from "./pages/AiTutorPage";
 import ProfilePage from "./pages/ProfilePage";
 import ScientificCalculatorPage from "./pages/ScientificCalculatorPage";
+import TimetableSettings from "./pages/TimetableSettings"; // ✅ Added new page
 
 import "./index.css";
 
@@ -37,16 +39,13 @@ export default function App() {
     <div className="relative min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300">
       {/* ✅ Scrollable content container with padding for navbar */}
       <div className="container mx-auto max-w-2xl px-5 pt-8 pb-24">
-        {/* 🔹 Top Navbar */}
+        {/* 🔹 Header at the top */}
         <Header />
 
-        {/* 🔹 Current Reminder (Always below Header, above Motivation Line) */}
-        <div className="mt-4">
-          <CurrentReminder />
+        {/* 🔹 Top Navbar just below Header */}
+        <div className="mt-4 mb-6">
+          <TopNavbar />
         </div>
-
-        {/* 🔹 Motivation Line */}
-        <MotivationBooster />
 
         {/* ✅ Routes */}
         <Routes>
@@ -54,13 +53,14 @@ export default function App() {
           <Route
             path="/"
             element={
-              <div className="space-y-8">
-                <DashboardOverview />
-                <CalendarWidget />
-
+              <div className="space-y-10">
                 {/* 🔹 Schedule Section */}
                 <section className="space-y-6">
                   <h2 className="text-xl font-semibold mt-4">📅 Schedule</h2>
+
+                  {/* These appear only in Schedule section */}
+                  <CurrentReminder />
+                  <MotivationBooster />
                   <ScheduleList />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <DailyGoalTracker />
@@ -81,6 +81,12 @@ export default function App() {
                   <h2 className="text-xl font-semibold mt-8">📝 To-Do List</h2>
                   <TodoList />
                 </section>
+
+                {/* 🔹 Calendar */}
+                <section className="space-y-6">
+                  <CalendarWidget />
+                  <DashboardOverview />
+                </section>
               </div>
             }
           />
@@ -91,6 +97,7 @@ export default function App() {
           <Route path="/calculator" element={<ScientificCalculatorPage />} />
           <Route path="/ai" element={<AiTutorPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/timetable" element={<TimetableSettings />} /> {/* ✅ Added */}
         </Routes>
       </div>
 
