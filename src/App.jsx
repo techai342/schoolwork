@@ -4,21 +4,18 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
-import CalendarWidget from "./components/CalendarWidget";
 import UpdatePrompt from "./components/UpdatePrompt";
 import MotivationBooster from "./components/MotivationBooster";
 import ReminderNotification from "./components/ReminderNotification";
 import InstallAppButton from "./components/InstallAppButton";
 import CurrentReminder from "./components/CurrentReminder";
-import SyllabusProgress from "./components/SyllabusProgress";
-import ScheduleList from "./components/ScheduleList";
 import SubjectProgress from "./components/SubjectProgress";
 import PerformanceSummary from "./components/PerformanceSummary";
 import FloatingActionButton from "./components/FloatingActionButton";
 import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
-import TodoList from "./components/TodoList";
 import BottomNavbar from "./components/BottomNavbar";
+import TopTabNavbar from "./components/TopTabNavbar"; // 🆕 new component
 
 // 📘 Pages
 import SyllabusPage from "./pages/SyllabusPage";
@@ -35,13 +32,13 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[var(--ios-bg)] text-gray-900 dark:text-white font-inter transition-all duration-300">
-      {/* ✅ Scrollable content container with proper bottom padding for navbar */}
+      {/* ✅ Scrollable content container with bottom padding for navbar */}
       <div className="container mx-auto max-w-2xl px-5 pt-8 pb-24">
         <Header />
 
-        {/* ✅ All Routes */}
+        {/* ✅ App Routes */}
         <Routes>
-          {/* Dashboard (Main) */}
+          {/* 🏠 Dashboard (Main) */}
           <Route
             path="/"
             element={
@@ -49,23 +46,23 @@ export default function App() {
                 <CurrentReminder />
                 <DashboardOverview />
                 <MotivationBooster />
-                <TodoList />
-                <CalendarWidget />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <DailyGoalTracker />
                   <StudyNotifier />
                 </div>
 
-                <SyllabusProgress />
-                <ScheduleList />
+                {/* 🆕 Top Tabs for Syllabus, Schedule, To-Do, Calendar */}
+                <TopTabNavbar />
+
+                {/* ✅ Remaining sections */}
                 <SubjectProgress />
                 <PerformanceSummary />
               </div>
             }
           />
 
-          {/* Other Pages */}
+          {/* 📘 Other Pages */}
           <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/calculator" element={<ScientificCalculatorPage />} />
@@ -74,10 +71,10 @@ export default function App() {
         </Routes>
       </div>
 
-      {/* ✅ Bottom Navbar - Fixed at bottom */}
+      {/* ✅ Fixed Bottom Navbar */}
       <BottomNavbar />
-      
-      {/* ✅ Other always visible components */}
+
+      {/* ✅ Always visible components */}
       <ChatBot />
       <FloatingActionButton />
       <InstallAppButton />
@@ -88,7 +85,7 @@ export default function App() {
         showTime={reminderTime}
       />
 
-      {/* Background styling */}
+      {/* 🌈 Background Styling */}
       <style>{`
         :root {
           --ios-bg: linear-gradient(to bottom right, #f0faff, #dfe9ff);
