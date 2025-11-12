@@ -1,4 +1,4 @@
-// src/pages/TimetableSettings.jsx
+// src/pages/TimetableSettings.jsx ..
 import React, { useState } from "react";
 import useTimetable from "../hooks/useTimetable";
 
