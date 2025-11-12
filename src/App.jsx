@@ -20,7 +20,7 @@ import StudyNotifier from "./components/StudyNotifier";
 import TodoList from "./components/TodoList";
 import BottomNavbar from "./components/BottomNavbar";
 
-// 📘 Pages
+// 📘 Pages .
 import SyllabusPage from "./pages/SyllabusPage";
 import PracticePage from "./pages/PracticePage";
 import AiTutorPage from "./pages/AiTutorPage";
