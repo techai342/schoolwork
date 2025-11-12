@@ -1,8 +1,7 @@
-// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
-import TopNavbar from "./components/TopNavbar"; // ✅ New Top Navbar (below Header)
+import TopTabNavbar from "./components/TopTabNavbar"; // ✅ Corrected Navbar import
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
 import CalendarWidget from "./components/CalendarWidget";
@@ -42,9 +41,14 @@ export default function App() {
         {/* 🔹 Header at the top */}
         <Header />
 
-        {/* 🔹 Top Navbar just below Header */}
+        {/* 🔹 Motivation line below header */}
+        <div className="text-center text-blue-600 font-semibold mt-3">
+          🌟 Keep pushing! Every study minute counts!
+        </div>
+
+        {/* 🔹 Top Tab Navbar below motivation line */}
         <div className="mt-4 mb-6">
-          <TopNavbar />
+          <TopTabNavbar />
         </div>
 
         {/* ✅ Routes */}
@@ -57,10 +61,7 @@ export default function App() {
                 {/* 🔹 Schedule Section */}
                 <section className="space-y-6">
                   <h2 className="text-xl font-semibold mt-4">📅 Schedule</h2>
-
-                  {/* These appear only in Schedule section */}
                   <CurrentReminder />
-                  <MotivationBooster />
                   <ScheduleList />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <DailyGoalTracker />
@@ -76,13 +77,13 @@ export default function App() {
                   <SubjectProgress />
                 </section>
 
-                {/* 🔹 Todo List Section */}
+                {/* 🔹 To-Do List Section */}
                 <section className="space-y-6">
                   <h2 className="text-xl font-semibold mt-8">📝 To-Do List</h2>
                   <TodoList />
                 </section>
 
-                {/* 🔹 Calendar */}
+                {/* 🔹 Calendar Section */}
                 <section className="space-y-6">
                   <CalendarWidget />
                   <DashboardOverview />
