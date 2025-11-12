@@ -1,4 +1,3 @@
-// src/pages/TimetableSettings.jsx ..
 import React, { useState } from "react";
 import useTimetable from "../hooks/useTimetable";
 
@@ -6,14 +5,36 @@ export default function TimetableSettings() {
   const { timetables, addTimetable, active, setActiveTimetable } = useTimetable();
   const [name, setName] = useState("");
   const [schedule, setSchedule] = useState([{ time: "", activity: "" }]);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   const addRow = () => setSchedule([...schedule, { time: "", activity: "" }]);
 
   const handleSave = () => {
     if (!name.trim()) return alert("Enter timetable name");
-    addTimetable(name, schedule);
+
+    if (editingIndex !== null) {
+      // Editing existing timetable
+      timetables[editingIndex].schedule = schedule;
+      // Update localStorage
+      localStorage.setItem(
+        "studyverse_timetables",
+        JSON.stringify({ timetables, activeTimetable: active })
+      );
+      setEditingIndex(null);
+    } else {
+      // Adding new timetable
+      addTimetable(name, schedule);
+    }
+
     setName("");
     setSchedule([{ time: "", activity: "" }]);
+  };
+
+  const handleEdit = (idx) => {
+    setEditingIndex(idx);
+    setName(timetables[idx].name);
+    setSchedule(timetables[idx].schedule);
+    setActiveTimetable(timetables[idx].name);
   };
 
   return (
@@ -25,7 +46,7 @@ export default function TimetableSettings() {
         <p className="font-semibold">Active: {active || "None selected"}</p>
       </div>
 
-      {/* Create New Timetable */}
+      {/* Create / Edit Timetable */}
       <div className="p-4 bg-white rounded-xl shadow">
         <input
           className="w-full border p-2 rounded mb-3"
@@ -66,7 +87,7 @@ export default function TimetableSettings() {
           onClick={handleSave}
           className="ml-2 bg-blue-500 text-white rounded p-2"
         >
-          💾 Save Timetable
+          {editingIndex !== null ? "💾 Update Timetable" : "💾 Save Timetable"}
         </button>
       </div>
 
@@ -77,13 +98,20 @@ export default function TimetableSettings() {
         {timetables.map((t, idx) => (
           <div
             key={idx}
-            className={`p-3 rounded-xl mb-2 cursor-pointer ${
+            className={`p-3 rounded-xl mb-2 flex justify-between items-center cursor-pointer ${
               active === t.name ? "bg-blue-100" : "bg-gray-100"
             }`}
-            onClick={() => setActiveTimetable(t.name)}
           >
-            <p className="font-semibold">{t.name}</p>
-            <p className="text-sm text-gray-600">{t.schedule.length} tasks</p>
+            <div onClick={() => setActiveTimetable(t.name)}>
+              <p className="font-semibold">{t.name}</p>
+              <p className="text-sm text-gray-600">{t.schedule.length} tasks</p>
+            </div>
+            <button
+              className="bg-yellow-400 text-white px-3 py-1 rounded"
+              onClick={() => handleEdit(idx)}
+            >
+              ✏️ Edit
+            </button>
           </div>
         ))}
       </div>
