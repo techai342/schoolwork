@@ -14,11 +14,11 @@ export default function TimetableSettings() {
 
     if (editingIndex !== null) {
       // Editing existing timetable
-      timetables[editingIndex].schedule = schedule;
-      // Update localStorage
+      const updatedTimetables = [...timetables];
+      updatedTimetables[editingIndex] = { name, schedule };
       localStorage.setItem(
         "studyverse_timetables",
-        JSON.stringify({ timetables, activeTimetable: active })
+        JSON.stringify({ timetables: updatedTimetables, activeTimetable: active })
       );
       setEditingIndex(null);
     } else {
@@ -47,7 +47,7 @@ export default function TimetableSettings() {
       </div>
 
       {/* Create / Edit Timetable */}
-      <div className="p-4 bg-white rounded-xl shadow">
+      <div className="p-4 bg-white rounded-xl shadow space-y-2">
         <input
           className="w-full border p-2 rounded mb-3"
           placeholder="Timetable Name (e.g. Class 10)"
@@ -80,15 +80,17 @@ export default function TimetableSettings() {
           </div>
         ))}
 
-        <button onClick={addRow} className="bg-gray-200 rounded p-2">
-          ➕ Add Row
-        </button>
-        <button
-          onClick={handleSave}
-          className="ml-2 bg-blue-500 text-white rounded p-2"
-        >
-          {editingIndex !== null ? "💾 Update Timetable" : "💾 Save Timetable"}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={addRow} className="bg-gray-200 rounded p-2">
+            ➕ Add Row
+          </button>
+          <button
+            onClick={handleSave}
+            className="bg-blue-500 text-white rounded p-2"
+          >
+            {editingIndex !== null ? "💾 Update Timetable" : "💾 Save Timetable"}
+          </button>
+        </div>
       </div>
 
       {/* List Timetables */}
@@ -98,17 +100,23 @@ export default function TimetableSettings() {
         {timetables.map((t, idx) => (
           <div
             key={idx}
-            className={`p-3 rounded-xl mb-2 flex justify-between items-center cursor-pointer ${
+            className={`p-3 rounded-xl mb-2 flex justify-between items-center ${
               active === t.name ? "bg-blue-100" : "bg-gray-100"
             }`}
           >
-            <div onClick={() => setActiveTimetable(t.name)}>
+            <div
+              className="flex-1 cursor-pointer"
+              onClick={() => setActiveTimetable(t.name)}
+            >
               <p className="font-semibold">{t.name}</p>
               <p className="text-sm text-gray-600">{t.schedule.length} tasks</p>
             </div>
             <button
-              className="bg-yellow-400 text-white px-3 py-1 rounded"
-              onClick={() => handleEdit(idx)}
+              className="ml-2 bg-yellow-400 text-white px-3 py-1 rounded flex-shrink-0"
+              onClick={(e) => {
+                e.stopPropagation(); // prevent parent click
+                handleEdit(idx);
+              }}
             >
               ✏️ Edit
             </button>
