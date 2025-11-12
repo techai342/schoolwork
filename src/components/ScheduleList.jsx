@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // ✅ import for navigation
 import schedule from "../data/schedule";
 import {
   BookOpen,
@@ -13,9 +14,12 @@ import {
   Sandwich,
   Utensils,
   Bed,
+  Settings, // Settings icon
 } from "lucide-react";
 
 export default function ScheduleList() {
+  const navigate = useNavigate(); // ✅ hook for navigation
+
   const iconMap = {
     Math: <BookOpen className="w-5 h-5" />,
     "Free / Mind Time (Morning)": <Coffee className="w-5 h-5" />,
@@ -51,6 +55,18 @@ export default function ScheduleList() {
 
   return (
     <div className="schedule-list space-y-6 fade-in">
+      {/* Settings button at the top */}
+      <div className="flex justify-end mb-4">
+        <button
+          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition"
+          onClick={() => navigate("/timetable-settings")} // ✅ navigate to settings page
+        >
+          <Settings className="w-5 h-5" />
+          Timetable Settings
+        </button>
+      </div>
+
+      {/* Schedule items */}
       {schedule.map((item, index) => (
         <div key={index} className="schedule-card">
           <div className="flex items-start">
@@ -76,7 +92,6 @@ export default function ScheduleList() {
       ))}
 
       <style>{`
-        /* Main schedule card */
         .schedule-card {
           background: white;
           border-radius: 18px;
@@ -89,7 +104,6 @@ export default function ScheduleList() {
           transform: translateY(-3px);
           box-shadow: 0 10px 25px rgba(0,122,255,0.15);
         }
-
         .time-badge {
           background: linear-gradient(90deg, #007aff, #00c6ff);
           color: white;
@@ -99,7 +113,6 @@ export default function ScheduleList() {
           font-weight: 500;
           box-shadow: 0 2px 6px rgba(0,122,255,0.25);
         }
-
         .glow {
           animation: glowPulse 2s infinite alternate;
         }
@@ -107,8 +120,6 @@ export default function ScheduleList() {
           from { box-shadow: 0 0 6px rgba(0,122,255,0.4); }
           to { box-shadow: 0 0 12px rgba(0,122,255,0.7); }
         }
-
-        /* Smooth fade-in animation */
         .fade-in {
           opacity: 0;
           animation: fadeIn 0.7s ease forwards;
@@ -117,7 +128,6 @@ export default function ScheduleList() {
           from { opacity: 0; transform: translateY(15px); }
           to { opacity: 1; transform: translateY(0); }
         }
-
         .schedule-list {
           position: relative;
         }
