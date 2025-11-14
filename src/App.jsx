@@ -2,22 +2,14 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import TopTabNavbar from "./components/TopTabNavbar";
-import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
 import CalendarWidget from "./components/CalendarWidget";
 import UpdatePrompt from "./components/UpdatePrompt";
-import MotivationBooster from "./components/MotivationBooster";
 import ReminderNotification from "./components/ReminderNotification";
 import InstallAppButton from "./components/InstallAppButton";
 import CurrentReminder from "./components/CurrentReminder";
-import SyllabusProgress from "./components/SyllabusProgress";
-import ScheduleList from "./components/ScheduleList";
-import SubjectProgress from "./components/SubjectProgress";
-import PerformanceSummary from "./components/PerformanceSummary";
 import FloatingActionButton from "./components/FloatingActionButton";
-import DailyGoalTracker from "./components/DailyGoalTracker";
 import StudyNotifier from "./components/StudyNotifier";
-import TodoList from "./components/TodoList";
 import BottomNavbar from "./components/BottomNavbar";
 
 // 📘 Pages ...
@@ -56,38 +48,20 @@ export default function App() {
           <TopTabNavbar />
         </div>
 
-        {/* ✅ Routes */}
-        <Routes>
-          {/* 🏠 Dashboard (Main Page) */}
-          <Route
-            path="/"
-            element={
-              <div className="space-y-10">
-                {/* 🔹 Study Notifier Section */}
-                <section className="space-y-6">
-                  <h2 className="text-xl font-semibold mt-4">🎯 Study Focus</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <StudyNotifier />
-                  </div>
-                </section>
+        {/* 🔹 Focus Study & Calendar Sections - Always visible below ALL tabs */}
+        <div className="space-y-10 mt-8">
+          {/* 🔹 Study Notifier Section */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold">🎯 Focus Study</h2>
+            <StudyNotifier />
+          </section>
 
-                {/* 🔹 Calendar Section */}
-                <section className="space-y-6">
-                  <h2 className="text-xl font-semibold mt-8">📅 Calendar & Overview</h2>
-                  <CalendarWidget />
-                </section>
-              </div>
-            }
-          />
-
-          {/* Other Pages */}
-          <Route path="/syllabus" element={<SyllabusPage />} />
-          <Route path="/practice" element={<PracticePage />} />
-          <Route path="/calculator" element={<ScientificCalculatorPage />} />
-          <Route path="/ai" element={<AiTutorPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/timetable" element={<TimetableSettings />} />
-        </Routes>
+          {/* 🔹 Calendar Section */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold">📅 Calendar</h2>
+            <CalendarWidget />
+          </section>
+        </div>
       </div>
 
       {/* ✅ Fixed Bottom Navbar */}
