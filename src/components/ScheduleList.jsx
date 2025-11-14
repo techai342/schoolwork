@@ -73,154 +73,127 @@ export default function ScheduleList() {
     return "from-blue-400 to-cyan-400";
   };
 
-  // Handle navigation to timetable settings
-  const handleSettingsClick = () => {
-    navigate("/timetable");
-  };
+  // Debugging - check if component is rendering
+  console.log("ScheduleList rendering - Active Timetable:", activeTimetable);
 
   return (
-    <div className="schedule-list space-y-6 fade-in p-4">
-      {/* HEADER WITH SETTINGS BUTTON - ALWAYS VISIBLE */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Your Daily Schedule</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {activeTimetable ? (
-              <>
-                Active: <span className="font-semibold text-blue-600 dark:text-blue-400">{activeTimetable}</span>
-                {activeTimetableData && (
-                  <span className="ml-2">• {activeTimetableData.schedule?.length || 0} time slots</span>
-                )}
-              </>
-            ) : (
-              "No active timetable"
-            )}
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      {/* MAIN CONTAINER - Fixed positioning and z-index */}
+      <div className="max-w-4xl mx-auto relative z-10">
         
-        {/* SETTINGS BUTTON */}
-        <button
-          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
-          onClick={handleSettingsClick}
-        >
-          <Settings className="w-5 h-5" />
-          <span className="font-semibold">Timetable Settings</span>
-        </button>
+        {/* HEADER SECTION - Fixed at top */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700 sticky top-4 z-20">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                Your Daily Schedule
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {activeTimetable ? (
+                  <>
+                    Active: <span className="font-semibold text-blue-600 dark:text-blue-400">{activeTimetable}</span>
+                    {activeTimetableData && (
+                      <span className="ml-2">• {activeTimetableData.schedule?.length || 0} time slots</span>
+                    )}
+                  </>
+                ) : (
+                  "No active timetable - Create one to get started"
+                )}
+              </p>
+            </div>
+            
+            {/* TIMETABLE SETTINGS BUTTON - Highly visible */}
+            <button
+              className="flex items-center gap-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl font-semibold border-0 outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+              onClick={() => navigate("/timetable")}
+            >
+              <Settings className="w-5 h-5" />
+              Timetable Settings
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENT SECTION */}
+        <div className="space-y-6">
+          {!activeTimetable ? (
+            // NO ACTIVE TIMETABLE STATE
+            <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="text-6xl mb-6">📚</div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
+                No Active Timetable
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto text-lg">
+                Create your personalized timetable to organize your study schedule and track your daily activities.
+              </p>
+              <button
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl shadow-lg font-bold text-lg transition-all duration-200 transform hover:scale-105"
+                onClick={() => navigate("/timetable")}
+              >
+                🚀 Create Your First Timetable
+              </button>
+            </div>
+          ) : activeTimetableData && activeTimetableData.schedule && activeTimetableData.schedule.length > 0 ? (
+            // SCHEDULE ITEMS LIST
+            <div className="space-y-4">
+              {activeTimetableData.schedule.map((item, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800">
+                  <div className="flex items-start gap-4">
+                    {/* Activity Icon */}
+                    <div className={`bg-gradient-to-br ${getColor(item.activity)} rounded-2xl w-14 h-14 flex items-center justify-center shadow-lg flex-shrink-0`}>
+                      {getIcon(item.activity)}
+                    </div>
+
+                    {/* Activity Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-4 mb-3">
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white truncate">
+                          {item.activity || "No Activity"}
+                        </h3>
+                        <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md whitespace-nowrap flex-shrink-0">
+                          {item.time || "No Time"}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
+                        {item.note || "No additional notes provided for this activity."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // EMPTY SCHEDULE STATE
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="text-5xl mb-4">📝</div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-3">
+                No Schedule Entries
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg">
+                Your "<span className="font-semibold">{activeTimetable}</span>" timetable doesn't have any schedule entries yet.
+              </p>
+              <button
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg font-semibold transition-all duration-200 transform hover:scale-105"
+                onClick={() => navigate("/timetable")}
+              >
+                ✏️ Add Schedule Entries
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* CONTENT BASED ON TIMETABLE STATE */}
-      {!activeTimetable ? (
-        // NO ACTIVE TIMETABLE STATE
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-          <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-            No Active Timetable
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Create your personalized timetable to organize your study schedule and track your daily activities.
-          </p>
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow font-semibold transition-all duration-200 transform hover:scale-105"
-            onClick={handleSettingsClick}
-          >
-            🚀 Create Your First Timetable
-          </button>
-        </div>
-      ) : activeTimetableData && activeTimetableData.schedule && activeTimetableData.schedule.length > 0 ? (
-        // SCHEDULE ITEMS
-        <div className="space-y-4">
-          {activeTimetableData.schedule.map((item, index) => (
-            <div key={index} className="schedule-card">
-              <div className="flex items-start">
-                <div
-                  className={`task-icon bg-gradient-to-br ${getColor(
-                    item.activity
-                  )} shadow-md rounded-2xl w-12 h-12 flex items-center justify-center glow`}
-                >
-                  {getIcon(item.activity)}
-                </div>
-
-                <div className="flex-1 ml-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                      {item.activity || "No Activity"}
-                    </h3>
-                    <span className="time-badge">{item.time}</span>
-                  </div>
-                  {item.note && (
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.note}</p>
-                  )}
-                  {!item.note && (
-                    <p className="text-gray-500 dark:text-gray-500 text-sm italic">No additional notes</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        // EMPTY SCHEDULE STATE
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-          <div className="text-4xl mb-3">📝</div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            No Schedule Entries
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Your "{activeTimetable}" timetable doesn't have any schedule entries yet.
-          </p>
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition-all duration-200"
-            onClick={handleSettingsClick}
-          >
-            ✏️ Add Schedule Entries
-          </button>
-        </div>
-      )}
-
-      <style>{`
-        .schedule-card {
-          background: white;
-          border-radius: 18px;
-          padding: 1rem 1.2rem;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-          border: 1px solid rgba(0,0,0,0.04);
-          transition: all 0.3s ease;
+      {/* Add some global styles to ensure visibility */}
+      <style jsx>{`
+        /* Ensure buttons are always visible */
+        button {
+          z-index: 1000;
+          position: relative;
         }
-        .dark .schedule-card {
-          background: #1f2937;
-          border-color: #374151;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .schedule-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 10px 25px rgba(0,122,255,0.15);
-        }
-        .dark .schedule-card:hover {
-          box-shadow: 0 10px 25px rgba(0,122,255,0.3);
-        }
-        .time-badge {
-          background: linear-gradient(90deg, #007aff, #00c6ff);
-          color: white;
-          font-size: 0.7rem;
-          padding: 4px 10px;
-          border-radius: 10px;
-          font-weight: 500;
-          box-shadow: 0 2px 6px rgba(0,122,255,0.25);
-        }
-        .glow {
-          animation: glowPulse 2s infinite alternate;
-        }
-        @keyframes glowPulse {
-          from { box-shadow: 0 0 6px rgba(0,122,255,0.4); }
-          to { box-shadow: 0 0 12px rgba(0,122,255,0.7); }
-        }
-        .fade-in {
-          opacity: 0;
-          animation: fadeIn 0.7s ease forwards;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(15px); }
-          to { opacity: 1; transform: translateY(0); }
+        
+        /* Make sure header stays on top */
+        .sticky {
+          position: sticky;
+          z-index: 100;
         }
       `}</style>
     </div>
