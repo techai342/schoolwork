@@ -28,6 +28,12 @@ export default function TopTabNavbar() {
             <SyllabusProgress />
             <SubjectProgress />
             <PerformanceSummary />
+          </div>
+        );
+      
+      case "schedule":
+        return (
+          <div className="space-y-6">
             <DashboardOverview />
             <DailyGoalTracker />
             <ScheduleList />
@@ -35,21 +41,10 @@ export default function TopTabNavbar() {
           </div>
         );
       
-      case "schedule":
-        return (
-          <div className="space-y-6">
-            <ScheduleList />
-            <DailyGoalTracker />
-            <PerformanceSummary />
-          </div>
-        );
-      
       case "todo":
         return (
           <div className="space-y-6">
             <TodoList />
-            <DailyGoalTracker />
-            <MotivationBooster />
           </div>
         );
       
@@ -57,8 +52,6 @@ export default function TopTabNavbar() {
         return (
           <div className="space-y-6">
             <CalendarWidget />
-            <ScheduleList />
-            <DailyGoalTracker />
           </div>
         );
       
