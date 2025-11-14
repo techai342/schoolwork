@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import schedule from "../data/schedule";
+import useTimetable from "../hooks/useTimetable";
 
 export default function DashboardOverview() {
   const [time, setTime] = useState(new Date());
@@ -7,78 +7,120 @@ export default function DashboardOverview() {
   const [nextTask, setNextTask] = useState({ name: "", countdown: "" });
   const [progress, setProgress] = useState(0);
   const [timeLeft, setTimeLeft] = useState("");
+  const { getActiveTimetable, getCurrentActivity, activeTimetable } = useTimetable();
 
-  const parseTimeRange = (range) => {
-    const [startStr, endStr] = range.split("–").map((s) => s.trim());
-    const today = new Date();
-    const parse = (str) => {
-      let [t, modifier] = str.split(" ");
-      let [h, m] = t.split(":").map(Number);
-      if (modifier === "PM" && h !== 12) h += 12;
-      if (modifier === "AM" && h === 12) h = 0;
-      return new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
-    };
-    return [parse(startStr), parse(endStr)];
-  };
+  // Convert time string to minutes
+  function timeToMinutes(timeStr) {
+    if (!timeStr) return -1;
+    
+    const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!timeMatch) return -1;
+    
+    let [_, hours, minutes, period] = timeMatch;
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+    
+    if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
+    if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes;
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
       setTime(now);
 
-      let active = schedule[0];
+      const activeTimetableData = getActiveTimetable();
+      const customCurrentActivity = getCurrentActivity();
+
+      if (!activeTimetable || !activeTimetableData || !activeTimetableData.schedule.length) {
+        setCurrentTask({ activity: "No Timetable", note: "Create your timetable in settings" });
+        setNextTask({ name: "Setup Required", countdown: "" });
+        setTimeLeft("");
+        setProgress(0);
+        return;
+      }
+
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      const schedule = activeTimetableData.schedule;
+
+      let activeTask = customCurrentActivity || schedule[0];
       let nextTaskInfo = { name: "", countdown: "" };
       let taskTimeLeft = "";
+      let dayProgress = 0;
 
-      const dayStart = parseTimeRange(schedule[0].time)[0];
-      const dayEnd = parseTimeRange(schedule[schedule.length - 1].time)[1];
-      const totalDay = dayEnd - dayStart;
-      const elapsedDay = now - dayStart;
-      setProgress(Math.min(Math.max((elapsedDay / totalDay) * 100, 0), 100));
-
-      for (let i = 0; i < schedule.length; i++) {
-        const [start, end] = parseTimeRange(schedule[i].time);
-        if (now >= start && now <= end) {
-          active = schedule[i];
-          const remainingMs = end - now;
-          const h = Math.floor(remainingMs / (1000 * 60 * 60));
-          const m = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-          taskTimeLeft = `${h} hr ${m} min`;
-
-          if (i + 1 < schedule.length) {
-            const [nextStart] = parseTimeRange(schedule[i + 1].time);
-            const diff = nextStart - now;
-            const nh = Math.floor(diff / (1000 * 60 * 60));
-            const nm = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            nextTaskInfo = {
-              name: schedule[i + 1].area,
-              countdown: `${nh} hr ${nm} min`,
-            };
-          } else {
-            nextTaskInfo = { name: "End of Day", countdown: "" };
-          }
-          break;
-        } else if (now < start) {
-          active = schedule[i - 1] || schedule[0];
-          const diff = start - now;
-          const h = Math.floor(diff / (1000 * 60 * 60));
-          const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          nextTaskInfo = {
-            name: schedule[i].area,
-            countdown: `${h} hr ${m} min`,
-          };
-          taskTimeLeft = "Not started";
-          break;
+      // Calculate day progress based on first and last task
+      if (schedule.length > 0) {
+        const firstTaskTime = timeToMinutes(schedule[0].time.split('–')[0].trim());
+        const lastTask = schedule[schedule.length - 1];
+        const lastTaskTime = timeToMinutes(lastTask.time.split('–')[1]?.trim()) || (24 * 60);
+        
+        if (firstTaskTime !== -1) {
+          const totalDay = lastTaskTime - firstTaskTime;
+          const elapsedDay = currentTime - firstTaskTime;
+          dayProgress = Math.min(Math.max((elapsedDay / totalDay) * 100, 0), 100);
         }
       }
 
-      setCurrentTask(active);
+      // Find current task and next task
+      for (let i = 0; i < schedule.length; i++) {
+        const task = schedule[i];
+        const taskTime = task.time.split('–')[0].trim();
+        const taskStart = timeToMinutes(taskTime);
+        
+        if (taskStart !== -1) {
+          const nextTaskTime = schedule[i + 1] ? 
+            timeToMinutes(schedule[i + 1].time.split('–')[0].trim()) : (24 * 60);
+          
+          if (currentTime >= taskStart && currentTime < nextTaskTime) {
+            activeTask = task;
+            
+            // Calculate time left for current task
+            const remaining = nextTaskTime - currentTime;
+            const hrs = Math.floor(remaining / 60);
+            const mins = remaining % 60;
+            taskTimeLeft = `${hrs > 0 ? hrs + "h " : ""}${mins}m`;
+
+            // Set next task info
+            if (i + 1 < schedule.length) {
+              const nextTaskItem = schedule[i + 1];
+              const nextStart = timeToMinutes(nextTaskItem.time.split('–')[0].trim());
+              const diff = nextStart - currentTime;
+              const nh = Math.floor(diff / 60);
+              const nm = diff % 60;
+              nextTaskInfo = {
+                name: nextTaskItem.activity,
+                countdown: `${nh > 0 ? nh + "h " : ""}${nm}m`
+              };
+            } else {
+              nextTaskInfo = { name: "End of Day", countdown: "" };
+            }
+            break;
+          } else if (currentTime < taskStart) {
+            // Before first task or between tasks
+            const diff = taskStart - currentTime;
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+            nextTaskInfo = {
+              name: task.activity,
+              countdown: `${h > 0 ? h + "h " : ""}${m}m`
+            };
+            taskTimeLeft = "Not started";
+            activeTask = { activity: "Free Time", note: "Next task coming up" };
+            break;
+          }
+        }
+      }
+
+      setCurrentTask(activeTask);
       setNextTask(nextTaskInfo);
       setTimeLeft(taskTimeLeft);
+      setProgress(dayProgress);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [activeTimetable, getActiveTimetable, getCurrentActivity]);
 
   return (
     <div className="dashboard-card fade-in">
@@ -90,29 +132,30 @@ export default function DashboardOverview() {
             month: "short",
             day: "numeric",
           })}
+          {activeTimetable && ` • ${activeTimetable}`}
         </p>
       </div>
 
       <div className="dashboard-content">
         <div className="dashboard-item">
           <span className="label">Current Task</span>
-          <span className="value">{currentTask.area} {currentTask.icon}</span>
+          <span className="value">{currentTask.activity}</span>
         </div>
 
         <div className="dashboard-item">
           <span className="label">Task Note</span>
-          <span className="value glow-text">{currentTask.note}</span>
+          <span className="value glow-text">{currentTask.note || "Stay focused!"}</span>
         </div>
 
         <div className="dashboard-item">
           <span className="label">Time Remaining</span>
-          <span className="value glow-text">{timeLeft}</span>
+          <span className="value glow-text">{timeLeft || "Not available"}</span>
         </div>
 
         <div className="dashboard-item">
           <span className="label">Next Task</span>
           <span className="value glow-text">
-            {nextTask.name} – {nextTask.countdown}
+            {nextTask.name} {nextTask.countdown && `– ${nextTask.countdown}`}
           </span>
         </div>
 
@@ -121,7 +164,7 @@ export default function DashboardOverview() {
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${progress}%` }}></div>
           </div>
-          <div className="progress-text">{Math.floor(progress)}%</div>
+          <div className="progress-text">{Math.floor(progress)}% of day completed</div>
         </div>
       </div>
 
