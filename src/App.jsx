@@ -63,34 +63,18 @@ export default function App() {
             path="/"
             element={
               <div className="space-y-10">
-                {/* 🔹 Schedule Section */}
+                {/* 🔹 Study Notifier Section */}
                 <section className="space-y-6">
-                  <h2 className="text-xl font-semibold mt-4">📅 Schedule</h2>
-                  <ScheduleList />
+                  <h2 className="text-xl font-semibold mt-4">🎯 Study Focus</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <DailyGoalTracker />
                     <StudyNotifier />
                   </div>
-                  <PerformanceSummary />
-                </section>
-
-                {/* 🔹 Progress Section */}
-                <section className="space-y-6">
-                  <h2 className="text-xl font-semibold mt-8">📈 Progress</h2>
-                  <SyllabusProgress />
-                  <SubjectProgress />
-                </section>
-
-                {/* 🔹 To-Do List Section */}
-                <section className="space-y-6">
-                  <h2 className="text-xl font-semibold mt-8">📝 To-Do List</h2>
-                  <TodoList />
                 </section>
 
                 {/* 🔹 Calendar Section */}
                 <section className="space-y-6">
+                  <h2 className="text-xl font-semibold mt-8">📅 Calendar & Overview</h2>
                   <CalendarWidget />
-                  <DashboardOverview />
                 </section>
               </div>
             }
