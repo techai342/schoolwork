@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import useNotification from "../hooks/useNotification";
 import useTimetable from "../hooks/useTimetable";
 
@@ -11,12 +11,21 @@ export default function CurrentReminder() {
   const { showNotification } = useNotification();
   const { getCurrentActivity, getActiveTimetable, activeTimetable } = useTimetable();
 
-  // 🔄 Live Time Update (every second)
-  useEffect(() => {
-    const tick = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(tick);
+  // Convert time string to minutes
+  const timeToMinutes = useCallback((timeStr) => {
+    if (!timeStr) return -1;
+    
+    const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!timeMatch) return -1;
+    
+    let [_, hours, minutes, period] = timeMatch;
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+    
+    if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
+    if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes;
   }, []);
 
   // Track task & progress every minute
@@ -28,7 +37,6 @@ export default function CurrentReminder() {
       const activeTimetableData = getActiveTimetable();
       const customCurrentActivity = getCurrentActivity();
 
-      // FIXED: Removed !customCurrentActivity check
       if (!activeTimetable || !activeTimetableData) {
         setCurrentTask(null);
         setProgress(0);
@@ -43,12 +51,24 @@ export default function CurrentReminder() {
 
       for (let i = 0; i < activeTimetableData.schedule.length; i++) {
         const task = activeTimetableData.schedule[i];
-        const taskTime = task.time.split('–')[0].trim();
+        if (!task.time) continue;
+        
+        const timeParts = task.time.split('–');
+        if (timeParts.length < 1) continue;
+        
+        const taskTime = timeParts[0].trim();
         const taskStart = timeToMinutes(taskTime);
         
         if (taskStart !== -1) {
           const nextTask = activeTimetableData.schedule[i + 1];
-          const nextTaskTime = nextTask ? timeToMinutes(nextTask.time.split('–')[0].trim()) : 24 * 60;
+          let nextTaskTime = 24 * 60; // Default to end of day
+          
+          if (nextTask && nextTask.time) {
+            const nextTimeParts = nextTask.time.split('–');
+            if (nextTimeParts.length > 0) {
+              nextTaskTime = timeToMinutes(nextTimeParts[0].trim());
+            }
+          }
           
           if (currentTime >= taskStart && currentTime < nextTaskTime) {
             foundTask = task;
@@ -56,7 +76,7 @@ export default function CurrentReminder() {
             // Calculate progress
             const duration = nextTaskTime - taskStart;
             const elapsed = currentTime - taskStart;
-            taskProgress = Math.min(100, (elapsed / duration) * 100);
+            taskProgress = Math.min(100, Math.max(0, (elapsed / duration) * 100));
             
             // Calculate remaining time
             const remaining = nextTaskTime - currentTime;
@@ -69,14 +89,14 @@ export default function CurrentReminder() {
         }
       }
 
-      // If no task found in timetable, use custom current activity if available
+      // If no task found in loop, use the custom current activity
       if (!foundTask && customCurrentActivity) {
         foundTask = customCurrentActivity;
         taskProgress = 50;
-        remainingTime = "Ongoing";
+        remainingTime = "Calculating...";
       }
 
-      // Only show notification when task changes and we have a valid task
+      // Show notification only when task changes
       if (foundTask && lastTaskRef.current?.activity !== foundTask.activity) {
         showNotification("🕒 Task Update", `Now: ${foundTask.activity}`);
       }
@@ -90,24 +110,15 @@ export default function CurrentReminder() {
     updateTask();
     const timer = setInterval(updateTask, 60000);
     return () => clearInterval(timer);
-  }, [activeTimetable, getCurrentActivity, getActiveTimetable, showNotification]);
+  }, [activeTimetable, timeToMinutes, showNotification]); // FIXED: Removed function dependencies
 
-  // Convert time string to minutes
-  function timeToMinutes(timeStr) {
-    if (!timeStr) return -1;
-    
-    const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-    if (!timeMatch) return -1;
-    
-    let [_, hours, minutes, period] = timeMatch;
-    hours = parseInt(hours);
-    minutes = parseInt(minutes);
-    
-    if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
-    if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
-    
-    return hours * 60 + minutes;
-  }
+  // 🔄 Live Time Update (every second)
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
 
   if (!activeTimetable) {
     return (
