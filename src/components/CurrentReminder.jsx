@@ -1,44 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import useNotification from "../hooks/useNotification";
+import useTimetable from "../hooks/useTimetable";
 
 export default function CurrentReminder() {
   const [time, setTime] = useState(new Date());
   const [currentTask, setCurrentTask] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [timeLeft, setTimeLeft] = useState("");
   const lastTaskRef = useRef(null);
   const { showNotification } = useNotification();
-
-  // Daily schedule
-  const schedule = [
-    { time: "5:00 AM – 6:30 AM", activity: "Math Practice" },
-    { time: "6:30 AM – 8:00 AM", activity: "Free / Morning Routine" },
-    { time: "8:00 AM – 2:00 PM", activity: "College / Study Time" },
-    { time: "2:00 PM – 4:00 PM", activity: "Physics Practice" },
-    { time: "4:00 PM – 6:00 PM", activity: "Computer Learning" },
-    { time: "6:00 PM – 8:00 PM", activity: "Family / Relax Time" },
-    { time: "8:00 PM – 9:00 PM", activity: "English Writing" },
-    { time: "9:00 PM – 10:30 PM", activity: "Revision / Reading" },
-    { time: "10:30 PM – 5:00 AM", activity: "Sleep / Rest" },
-  ];
-
-  // Convert "hh:mm AM/PM" → minutes
-  function timeToMinutes(t) {
-    const [raw, period] = t.trim().split(" ");
-    const [h, m] = raw.split(":").map(Number);
-    let hours = h % 12;
-    if (period.toLowerCase().includes("pm")) hours += 12;
-    return hours * 60 + (m || 0);
-  }
-
-  // Preprocess schedule
-  const processed = schedule.map((item) => {
-    const [start, end] = item.time.split("–").map((t) => t.trim());
-    return {
-      ...item,
-      startMin: timeToMinutes(start),
-      endMin: timeToMinutes(end),
-    };
-  });
+  const { getCurrentActivity, getActiveTimetable, activeTimetable } = useTimetable();
 
   // 🔄 Live Time Update (every second)
   useEffect(() => {
@@ -52,45 +23,116 @@ export default function CurrentReminder() {
   useEffect(() => {
     const updateTask = () => {
       const now = new Date();
-      const minutes = now.getHours() * 60 + now.getMinutes();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      const activeTimetableData = getActiveTimetable();
+      const customCurrentActivity = getCurrentActivity();
 
-      let found = null;
-      for (const s of processed) {
-        const inRange =
-          (s.startMin <= s.endMin &&
-            minutes >= s.startMin &&
-            minutes < s.endMin) ||
-          (s.startMin > s.endMin &&
-            (minutes >= s.startMin || minutes < s.endMin));
-        if (inRange) {
-          found = s;
-          const duration =
-            s.startMin > s.endMin
-              ? 1440 - s.startMin + s.endMin
-              : s.endMin - s.startMin;
-          const elapsed =
-            s.startMin > s.endMin
-              ? minutes >= s.startMin
-                ? minutes - s.startMin
-                : 1440 - s.startMin + minutes
-              : minutes - s.startMin;
-          setProgress(Math.min(100, (elapsed / duration) * 100));
-          break;
+      if (!activeTimetable || !activeTimetableData || !customCurrentActivity) {
+        setCurrentTask(null);
+        setProgress(0);
+        setTimeLeft("");
+        return;
+      }
+
+      // Find current task in timetable
+      let foundTask = null;
+      let taskProgress = 0;
+      let remainingTime = "";
+
+      for (let i = 0; i < activeTimetableData.schedule.length; i++) {
+        const task = activeTimetableData.schedule[i];
+        const taskTime = task.time.split('–')[0].trim();
+        const taskStart = timeToMinutes(taskTime);
+        
+        if (taskStart !== -1) {
+          const nextTask = activeTimetableData.schedule[i + 1];
+          const nextTaskTime = nextTask ? timeToMinutes(nextTask.time.split('–')[0].trim()) : 24 * 60;
+          
+          if (currentTime >= taskStart && currentTime < nextTaskTime) {
+            foundTask = task;
+            
+            // Calculate progress
+            const duration = nextTaskTime - taskStart;
+            const elapsed = currentTime - taskStart;
+            taskProgress = Math.min(100, (elapsed / duration) * 100);
+            
+            // Calculate remaining time
+            const remaining = nextTaskTime - currentTime;
+            const hrs = Math.floor(remaining / 60);
+            const mins = remaining % 60;
+            remainingTime = `${hrs > 0 ? hrs + "h " : ""}${mins}m`;
+            
+            break;
+          }
         }
       }
 
-      if (found && lastTaskRef.current?.activity !== found.activity) {
-        showNotification("🕒 New Task Started", `It's time for ${found.activity}!`);
+      // If no task found, use the custom current activity
+      if (!foundTask && customCurrentActivity) {
+        foundTask = customCurrentActivity;
+        taskProgress = 50; // Default progress if we can't calculate
+        remainingTime = "Calculating...";
       }
 
-      setCurrentTask(found);
-      lastTaskRef.current = found;
+      if (foundTask && lastTaskRef.current?.activity !== foundTask.activity) {
+        showNotification("🕒 Task Update", `Now: ${foundTask.activity}`);
+      }
+
+      setCurrentTask(foundTask);
+      setProgress(taskProgress);
+      setTimeLeft(remainingTime);
+      lastTaskRef.current = foundTask;
     };
 
     updateTask();
     const timer = setInterval(updateTask, 60000);
     return () => clearInterval(timer);
-  }, [processed, showNotification]);
+  }, [activeTimetable, getCurrentActivity, getActiveTimetable, showNotification]);
+
+  // Convert time string to minutes
+  function timeToMinutes(timeStr) {
+    if (!timeStr) return -1;
+    
+    const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!timeMatch) return -1;
+    
+    let [_, hours, minutes, period] = timeMatch;
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
+    
+    if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
+    if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes;
+  }
+
+  if (!activeTimetable) {
+    return (
+      <div className="reminder-card bounce-in">
+        <div className="reminder-header">
+          <div>
+            <p className="time-text">{time.toLocaleTimeString()}</p>
+            <h2 className="title">Current Activity</h2>
+            <p className="activity-name">No timetable active</p>
+          </div>
+          <div className="live-status">
+            <div className="status-dot inactive"></div>
+            <span>SETUP</span>
+          </div>
+        </div>
+        
+        <div className="timeline">
+          <div className="timeline-track"></div>
+          <div className="timeline-progress" style={{ width: `0%` }}></div>
+        </div>
+
+        <p className="time-left">
+          Go to Timetable Settings to create your schedule
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="reminder-card bounce-in">
@@ -99,7 +141,7 @@ export default function CurrentReminder() {
           <p className="time-text">{time.toLocaleTimeString()}</p>
           <h2 className="title">Current Activity</h2>
           <p className="activity-name">
-            {currentTask ? currentTask.activity : "No task right now"}
+            {currentTask ? currentTask.activity : "Free Time"}
           </p>
         </div>
         <div className="live-status">
@@ -118,18 +160,9 @@ export default function CurrentReminder() {
       </div>
 
       {/* Time Remaining */}
-      {currentTask && (
+      {currentTask && timeLeft && (
         <p className="time-left">
-          Time Remaining:{" "}
-          {(() => {
-            const nowMin = time.getHours() * 60 + time.getMinutes();
-            const end = currentTask.endMin;
-            const remaining =
-              end > nowMin ? end - nowMin : 1440 - nowMin + end;
-            const hrs = Math.floor(remaining / 60);
-            const mins = remaining % 60;
-            return `${hrs > 0 ? hrs + "h " : ""}${mins}m`;
-          })()}
+          Time Remaining: {timeLeft}
         </p>
       )}
 
@@ -176,6 +209,11 @@ export default function CurrentReminder() {
           border-radius: 50%;
           margin-right: 5px;
           box-shadow: 0 0 0 5px rgba(52,199,89,0.25);
+          animation: pulse 2s infinite;
+        }
+        .status-dot.inactive {
+          background: #ff9500;
+          box-shadow: 0 0 0 5px rgba(255,149,0,0.25);
           animation: pulse 2s infinite;
         }
         .timeline {
