@@ -28,7 +28,8 @@ export default function CurrentReminder() {
       const activeTimetableData = getActiveTimetable();
       const customCurrentActivity = getCurrentActivity();
 
-      if (!activeTimetable || !activeTimetableData || !customCurrentActivity) {
+      // FIXED: Removed !customCurrentActivity check
+      if (!activeTimetable || !activeTimetableData) {
         setCurrentTask(null);
         setProgress(0);
         setTimeLeft("");
@@ -68,13 +69,14 @@ export default function CurrentReminder() {
         }
       }
 
-      // If no task found, use the custom current activity
+      // If no task found in timetable, use custom current activity if available
       if (!foundTask && customCurrentActivity) {
         foundTask = customCurrentActivity;
-        taskProgress = 50; // Default progress if we can't calculate
-        remainingTime = "Calculating...";
+        taskProgress = 50;
+        remainingTime = "Ongoing";
       }
 
+      // Only show notification when task changes and we have a valid task
       if (foundTask && lastTaskRef.current?.activity !== foundTask.activity) {
         showNotification("🕒 Task Update", `Now: ${foundTask.activity}`);
       }
