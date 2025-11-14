@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
-import TopTabNavbar from "./components/TopTabNavbar"; // ✅ Corrected Navbar import
+import TopTabNavbar from "./components/TopTabNavbar";
 import DashboardOverview from "./components/DashboardOverview";
 import ChatBot from "./components/ChatBot";
 import CalendarWidget from "./components/CalendarWidget";
@@ -27,7 +27,6 @@ import AiTutorPage from "./pages/AiTutorPage";
 import ProfilePage from "./pages/ProfilePage";
 import ScientificCalculatorPage from "./pages/ScientificCalculatorPage";
 import TimetableSettings from "./pages/TimetableSettings";
- // ✅ Added new page
 
 import "./index.css";
 
@@ -47,7 +46,12 @@ export default function App() {
           🌟 Keep pushing! Every study minute counts!
         </div>
 
-        {/* 🔹 Top Tab Navbar below motivation line */}
+        {/* 🔹 Current Activity below motivation line */}
+        <div className="mt-4">
+          <CurrentReminder />
+        </div>
+
+        {/* 🔹 Top Tab Navbar below current activity */}
         <div className="mt-4 mb-6">
           <TopTabNavbar />
         </div>
@@ -62,7 +66,6 @@ export default function App() {
                 {/* 🔹 Schedule Section */}
                 <section className="space-y-6">
                   <h2 className="text-xl font-semibold mt-4">📅 Schedule</h2>
-                  <CurrentReminder />
                   <ScheduleList />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <DailyGoalTracker />
@@ -99,7 +102,7 @@ export default function App() {
           <Route path="/calculator" element={<ScientificCalculatorPage />} />
           <Route path="/ai" element={<AiTutorPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/timetable" element={<TimetableSettings />} /> {/* ✅ Added */}
+          <Route path="/timetable" element={<TimetableSettings />} />
         </Routes>
       </div>
 
