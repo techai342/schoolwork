@@ -51,6 +51,7 @@ export default function TopTabNavbar() {
       case "calendar":
         return (
           <div className="space-y-6">
+            {/* Only CalendarWidget shows here when Calendar tab is active */}
             <CalendarWidget />
           </div>
         );
