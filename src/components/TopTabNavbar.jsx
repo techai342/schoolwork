@@ -3,6 +3,11 @@ import SyllabusProgress from "./SyllabusProgress";
 import ScheduleList from "./ScheduleList";
 import TodoList from "./TodoList";
 import CalendarWidget from "./CalendarWidget";
+import SubjectProgress from "./SubjectProgress";
+import PerformanceSummary from "./PerformanceSummary";
+import DashboardOverview from "./DashboardOverview";
+import DailyGoalTracker from "./DailyGoalTracker";
+import MotivationBooster from "./MotivationBooster";
 
 export default function TopTabNavbar() {
   const [activeTab, setActiveTab] = useState("syllabus");
@@ -13,6 +18,54 @@ export default function TopTabNavbar() {
     { id: "todo", label: "To-Do List" },
     { id: "calendar", label: "Calendar" },
   ];
+
+  // Render different component combinations based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "syllabus":
+        return (
+          <div className="space-y-6">
+            <SyllabusProgress />
+            <SubjectProgress />
+            <PerformanceSummary />
+            <DashboardOverview />
+            <DailyGoalTracker />
+            <ScheduleList />
+            <MotivationBooster />
+          </div>
+        );
+      
+      case "schedule":
+        return (
+          <div className="space-y-6">
+            <ScheduleList />
+            <DailyGoalTracker />
+            <PerformanceSummary />
+          </div>
+        );
+      
+      case "todo":
+        return (
+          <div className="space-y-6">
+            <TodoList />
+            <DailyGoalTracker />
+            <MotivationBooster />
+          </div>
+        );
+      
+      case "calendar":
+        return (
+          <div className="space-y-6">
+            <CalendarWidget />
+            <ScheduleList />
+            <DailyGoalTracker />
+          </div>
+        );
+      
+      default:
+        return <SyllabusProgress />;
+    }
+  };
 
   return (
     <div className="top-tabs fade-in">
@@ -31,10 +84,7 @@ export default function TopTabNavbar() {
 
       {/* Tab Content */}
       <div className="tab-content">
-        {activeTab === "syllabus" && <SyllabusProgress />}
-        {activeTab === "schedule" && <ScheduleList />}
-        {activeTab === "todo" && <TodoList />}
-        {activeTab === "calendar" && <CalendarWidget />}
+        {renderTabContent()}
       </div>
 
       {/* Inline styling for a WhatsApp-style design */}
