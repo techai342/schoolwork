@@ -1,225 +1,199 @@
-import React, { useState } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import useTimetable from "../hooks/useTimetable";
+import {
+  BookOpen,
+  Coffee,
+  Sun,
+  Atom,
+  Laptop,
+  Feather,
+  Moon,
+  Home,
+  Dumbbell,
+  Sandwich,
+  Utensils,
+  Bed,
+  Settings,
+} from "lucide-react";
 
-export default function TimetableSettings() {
-  const { timetables, addTimetable, activeTimetable, setActiveTimetable, updateTimetable, deleteTimetable } = useTimetable();
-  const [name, setName] = useState("");
-  const [schedule, setSchedule] = useState([{ time: "", activity: "", note: "" }]);
-  const [editingIndex, setEditingIndex] = useState(null);
+export default function ScheduleList() {
+  const navigate = useNavigate();
+  const { getActiveTimetable, activeTimetable } = useTimetable();
+  const activeTimetableData = getActiveTimetable();
 
-  const addRow = () => setSchedule([...schedule, { time: "", activity: "", note: "" }]);
-
-  const removeRow = (index) => {
-    if (schedule.length > 1) {
-      const updated = schedule.filter((_, i) => i !== index);
-      setSchedule(updated);
-    }
+  const iconMap = {
+    Math: <BookOpen className="w-5 h-5" />,
+    "Free / Mind Time (Morning)": <Coffee className="w-5 h-5" />,
+    College: <Sun className="w-5 h-5" />,
+    Physics: <Atom className="w-5 h-5" />,
+    Computer: <Laptop className="w-5 h-5" />,
+    English: <Feather className="w-5 h-5" />,
+    Revision: <Moon className="w-5 h-5" />,
+    "Free / Family Time": <Home className="w-5 h-5" />,
+    "Free / Exercise Time": <Dumbbell className="w-5 h-5" />,
+    "Free / Lunch Break": <Sandwich className="w-5 h-5" />,
+    "Dinner / Relax": <Utensils className="w-5 h-5" />,
+    "💤 Rest & Sleep": <Bed className="w-5 h-5" />,
   };
 
-  const handleSave = () => {
-    if (!name.trim()) return alert("Please enter timetable name");
-    
-    // Validate schedule entries
-    const validSchedule = schedule.filter(item => 
-      item.time.trim() && item.activity.trim()
+  const getColor = (area) => {
+    const colors = {
+      Math: "from-blue-500 to-cyan-400",
+      Physics: "from-green-500 to-emerald-400",
+      Computer: "from-pink-500 to-red-400",
+      English: "from-yellow-500 to-orange-400",
+      Revision: "from-indigo-500 to-violet-400",
+      College: "from-purple-500 to-indigo-400",
+      "Free / Family Time": "from-teal-500 to-green-400",
+      "Free / Exercise Time": "from-cyan-500 to-blue-400",
+      "Free / Mind Time (Morning)": "from-amber-500 to-yellow-400",
+      "Free / Lunch Break": "from-orange-500 to-amber-400",
+      "Dinner / Relax": "from-rose-500 to-pink-400",
+      "💤 Rest & Sleep": "from-gray-400 to-slate-500",
+    };
+    return colors[area] || "from-blue-400 to-cyan-400";
+  };
+
+  // If no active timetable, show setup message
+  if (!activeTimetable) {
+    return (
+      <div className="schedule-list space-y-6 fade-in">
+        {/* Settings Button - ALWAYS VISIBLE */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">Your Schedule</h2>
+          <button
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition-all duration-200"
+            onClick={() => navigate("/timetable")}
+          >
+            <Settings className="w-5 h-5" />
+            Timetable Settings
+          </button>
+        </div>
+
+        {/* Empty State */}
+        <div className="text-center py-12 bg-white rounded-2xl shadow-lg border border-gray-100">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            No Active Timetable
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Create your personalized timetable to organize your study schedule and track your daily activities.
+          </p>
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow font-semibold transition-all duration-200"
+            onClick={() => navigate("/timetable")}
+          >
+            🚀 Create Your First Timetable
+          </button>
+        </div>
+      </div>
     );
-    
-    if (validSchedule.length === 0) return alert("Please add at least one schedule entry");
-
-    if (editingIndex !== null) {
-      // Update existing timetable
-      updateTimetable(editingIndex, name, validSchedule);
-      setEditingIndex(null);
-    } else {
-      // Add new timetable
-      addTimetable(name, validSchedule);
-    }
-
-    setName("");
-    setSchedule([{ time: "", activity: "", note: "" }]);
-  };
-
-  const handleEdit = (idx) => {
-    setEditingIndex(idx);
-    setName(timetables[idx].name);
-    setSchedule(timetables[idx].schedule);
-    setActiveTimetable(timetables[idx].name);
-  };
-
-  const handleDelete = (idx) => {
-    if (window.confirm("Are you sure you want to delete this timetable?")) {
-      deleteTimetable(idx);
-      if (editingIndex === idx) {
-        setEditingIndex(null);
-        setName("");
-        setSchedule([{ time: "", activity: "", note: "" }]);
-      }
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingIndex(null);
-    setName("");
-    setSchedule([{ time: "", activity: "", note: "" }]);
-  };
+  }
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white">📘 Manage Your Timetable</h2>
-
-      {/* Active Timetable */}
-      <div className="p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
-        <p className="font-semibold text-blue-800 dark:text-blue-200">
-          🟢 Active Timetable: <span className="text-blue-600 dark:text-blue-300">{activeTimetable || "None selected"}</span>
-        </p>
-      </div>
-
-      {/* Create / Edit Timetable */}
-      <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg space-y-4 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-          {editingIndex !== null ? "✏️ Edit Timetable" : "➕ Create New Timetable"}
-        </h3>
-        
-        <input
-          className="w-full border border-gray-300 dark:border-gray-600 p-3 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          placeholder="Timetable Name (e.g. Class 10, Exam Preparation, Weekly Study)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Schedule Entries:
-          </label>
-          {schedule.map((s, i) => (
-            <div key={i} className="flex gap-3 items-start">
-              <input
-                className="flex-1 border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                placeholder="Time (e.g. 5:00 AM – 6:00 AM)"
-                value={s.time}
-                onChange={(e) => {
-                  const updated = [...schedule];
-                  updated[i].time = e.target.value;
-                  setSchedule(updated);
-                }}
-              />
-              <input
-                className="flex-1 border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                placeholder="Activity (e.g. Math Practice)"
-                value={s.activity}
-                onChange={(e) => {
-                  const updated = [...schedule];
-                  updated[i].activity = e.target.value;
-                  setSchedule(updated);
-                }}
-              />
-              <input
-                className="flex-1 border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                placeholder="Note (optional)"
-                value={s.note}
-                onChange={(e) => {
-                  const updated = [...schedule];
-                  updated[i].note = e.target.value;
-                  setSchedule(updated);
-                }}
-              />
-              {schedule.length > 1 && (
-                <button
-                  onClick={() => removeRow(i)}
-                  className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition"
-                >
-                  ❌
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-3 flex-wrap">
-          <button 
-            onClick={addRow} 
-            className="bg-green-500 text-white rounded-lg px-4 py-2 hover:bg-green-600 transition flex items-center gap-2"
-          >
-            ➕ Add Time Slot
-          </button>
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 transition flex items-center gap-2"
-          >
-            {editingIndex !== null ? "💾 Update Timetable" : "💾 Save Timetable"}
-          </button>
-          {editingIndex !== null && (
-            <button
-              onClick={handleCancel}
-              className="bg-gray-500 text-white rounded-lg px-4 py-2 hover:bg-gray-600 transition"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Saved Timetables */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-          📋 Your Timetables ({timetables.length})
-        </h3>
-        
-        {timetables.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-            No timetables saved yet. Create your first timetable above!
+    <div className="schedule-list space-y-6 fade-in">
+      {/* Header with Settings Button - ALWAYS VISIBLE */}
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">Your Schedule</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Active: <span className="font-semibold text-blue-600">{activeTimetable}</span>
+            {activeTimetableData && activeTimetableData.schedule && (
+              <span className="ml-2">• {activeTimetableData.schedule.length} time slots</span>
+            )}
           </p>
-        ) : (
-          <div className="space-y-3">
-            {timetables.map((t, idx) => (
-              <div
-                key={idx}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  activeTimetable === t.name 
-                    ? "bg-blue-50 dark:bg-blue-900 border-blue-300 dark:border-blue-600" 
-                    : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div 
-                    className="flex-1 cursor-pointer"
-                    onClick={() => setActiveTimetable(t.name)}
-                  >
-                    <p className="font-semibold text-gray-800 dark:text-white">{t.name}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {t.schedule.length} time slots
-                    </p>
-                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Next: {t.schedule[0]?.time} - {t.schedule[0]?.activity}
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600 transition flex items-center gap-1 text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(idx);
-                      }}
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition flex items-center gap-1 text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(idx);
-                      }}
-                    >
-                      🗑️ Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        </div>
+        <button
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition-all duration-200"
+          onClick={() => navigate("/timetable")}
+        >
+          <Settings className="w-5 h-5" />
+          Timetable Settings
+        </button>
       </div>
+
+      {/* Schedule Items */}
+      {activeTimetableData && activeTimetableData.schedule && activeTimetableData.schedule.length > 0 ? (
+        activeTimetableData.schedule.map((item, index) => (
+          <div key={index} className="schedule-card">
+            <div className="flex items-start">
+              <div
+                className={`task-icon bg-gradient-to-br ${getColor(
+                  item.area || item.activity
+                )} shadow-md rounded-2xl w-12 h-12 flex items-center justify-center glow`}
+              >
+                {iconMap[item.area || item.activity] || <BookOpen className="w-5 h-5" />}
+              </div>
+
+              <div className="flex-1 ml-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {item.area || item.activity || "No Activity"}
+                  </h3>
+                  <span className="time-badge">{item.time}</span>
+                </div>
+                <p className="text-gray-600 text-sm">{item.note || "No additional notes"}</p>
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="text-center py-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+          <div className="text-4xl mb-3">📝</div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            No Schedule Entries
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Your "{activeTimetable}" timetable doesn't have any schedule entries yet.
+          </p>
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition-all duration-200"
+            onClick={() => navigate("/timetable")}
+          >
+            ✏️ Add Schedule Entries
+          </button>
+        </div>
+      )}
+
+      <style>{`
+        .schedule-card {
+          background: white;
+          border-radius: 18px;
+          padding: 1rem 1.2rem;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+          border: 1px solid rgba(0,0,0,0.04);
+          transition: all 0.3s ease;
+        }
+        .schedule-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 25px rgba(0,122,255,0.15);
+        }
+        .time-badge {
+          background: linear-gradient(90deg, #007aff, #00c6ff);
+          color: white;
+          font-size: 0.7rem;
+          padding: 4px 10px;
+          border-radius: 10px;
+          font-weight: 500;
+          box-shadow: 0 2px 6px rgba(0,122,255,0.25);
+        }
+        .glow {
+          animation: glowPulse 2s infinite alternate;
+        }
+        @keyframes glowPulse {
+          from { box-shadow: 0 0 6px rgba(0,122,255,0.4); }
+          to { box-shadow: 0 0 12px rgba(0,122,255,0.7); }
+        }
+        .fade-in {
+          opacity: 0;
+          animation: fadeIn 0.7s ease forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
