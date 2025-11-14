@@ -73,105 +73,106 @@ export default function ScheduleList() {
     return "from-blue-400 to-cyan-400";
   };
 
-  if (!activeTimetable) {
-    return (
-      <div className="schedule-list space-y-6 fade-in">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Your Schedule</h2>
-          <button
-            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition"
-            onClick={() => navigate("/timetable")}
-          >
-            <Settings className="w-5 h-5" />
-            Create Timetable
-          </button>
+  // Handle navigation to timetable settings
+  const handleSettingsClick = () => {
+    navigate("/timetable");
+  };
+
+  return (
+    <div className="schedule-list space-y-6 fade-in p-4">
+      {/* HEADER WITH SETTINGS BUTTON - ALWAYS VISIBLE */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Your Daily Schedule</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {activeTimetable ? (
+              <>
+                Active: <span className="font-semibold text-blue-600 dark:text-blue-400">{activeTimetable}</span>
+                {activeTimetableData && (
+                  <span className="ml-2">• {activeTimetableData.schedule?.length || 0} time slots</span>
+                )}
+              </>
+            ) : (
+              "No active timetable"
+            )}
+          </p>
         </div>
         
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow">
+        {/* SETTINGS BUTTON */}
+        <button
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
+          onClick={handleSettingsClick}
+        >
+          <Settings className="w-5 h-5" />
+          <span className="font-semibold">Timetable Settings</span>
+        </button>
+      </div>
+
+      {/* CONTENT BASED ON TIMETABLE STATE */}
+      {!activeTimetable ? (
+        // NO ACTIVE TIMETABLE STATE
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
           <div className="text-6xl mb-4">📚</div>
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
             No Active Timetable
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Create your personalized timetable to see your schedule here
+          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            Create your personalized timetable to organize your study schedule and track your daily activities.
           </p>
           <button
-            className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 transition font-semibold"
-            onClick={() => navigate("/timetable")}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow font-semibold transition-all duration-200 transform hover:scale-105"
+            onClick={handleSettingsClick}
           >
             🚀 Create Your First Timetable
           </button>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="schedule-list space-y-6 fade-in">
-      {/* Header with Timetable Info and Settings Button */}
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Your Schedule</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Active: <span className="font-semibold text-blue-600 dark:text-blue-400">{activeTimetable}</span>
-            {activeTimetableData && (
-              <span className="ml-2">• {activeTimetableData.schedule?.length || 0} time slots</span>
-            )}
-          </p>
-        </div>
-        <button
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition"
-          onClick={() => navigate("/timetable")}
-        >
-          <Settings className="w-5 h-5" />
-          Timetable Settings
-        </button>
-      </div>
-
-      {/* Schedule items from custom timetable */}
-      {activeTimetableData && activeTimetableData.schedule && activeTimetableData.schedule.length > 0 ? (
-        activeTimetableData.schedule.map((item, index) => (
-          <div key={index} className="schedule-card">
-            <div className="flex items-start">
-              <div
-                className={`task-icon bg-gradient-to-br ${getColor(
-                  item.activity
-                )} shadow-md rounded-2xl w-12 h-12 flex items-center justify-center glow`}
-              >
-                {getIcon(item.activity)}
-              </div>
-
-              <div className="flex-1 ml-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                    {item.activity || "No Activity"}
-                  </h3>
-                  <span className="time-badge">{item.time}</span>
+      ) : activeTimetableData && activeTimetableData.schedule && activeTimetableData.schedule.length > 0 ? (
+        // SCHEDULE ITEMS
+        <div className="space-y-4">
+          {activeTimetableData.schedule.map((item, index) => (
+            <div key={index} className="schedule-card">
+              <div className="flex items-start">
+                <div
+                  className={`task-icon bg-gradient-to-br ${getColor(
+                    item.activity
+                  )} shadow-md rounded-2xl w-12 h-12 flex items-center justify-center glow`}
+                >
+                  {getIcon(item.activity)}
                 </div>
-                {item.note && (
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{item.note}</p>
-                )}
-                {!item.note && (
-                  <p className="text-gray-500 dark:text-gray-500 text-sm italic">No additional notes</p>
-                )}
+
+                <div className="flex-1 ml-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      {item.activity || "No Activity"}
+                    </h3>
+                    <span className="time-badge">{item.time}</span>
+                  </div>
+                  {item.note && (
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.note}</p>
+                  )}
+                  {!item.note && (
+                    <p className="text-gray-500 dark:text-gray-500 text-sm italic">No additional notes</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       ) : (
-        <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-2xl shadow">
+        // EMPTY SCHEDULE STATE
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
           <div className="text-4xl mb-3">📝</div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
             No Schedule Entries
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            This timetable doesn't have any schedule entries yet.
+            Your "{activeTimetable}" timetable doesn't have any schedule entries yet.
           </p>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition"
-            onClick={() => navigate("/timetable")}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition-all duration-200"
+            onClick={handleSettingsClick}
           >
-            ✏️ Edit Timetable
+            ✏️ Add Schedule Entries
           </button>
         </div>
       )}
@@ -220,9 +221,6 @@ export default function ScheduleList() {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(15px); }
           to { opacity: 1; transform: translateY(0); }
-        }
-        .schedule-list {
-          position: relative;
         }
       `}</style>
     </div>
