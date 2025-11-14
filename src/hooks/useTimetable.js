@@ -2,42 +2,65 @@ import { useState, useEffect } from "react";
 
 export default function useTimetable() {
   const [timetables, setTimetables] = useState([]);
-  const [active, setActive] = useState(null);
+  const [activeTimetable, setActiveTimetable] = useState('');
 
   // Load from localStorage on mount
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("studyverse_timetables")) || {};
-    setTimetables(saved.timetables || []);
-    setActive(saved.activeTimetable || null);
+    const saved = localStorage.getItem('studyverse_timetables');
+    if (saved) {
+      try {
+        const { timetables: savedTimetables, activeTimetable: savedActive } = JSON.parse(saved);
+        setTimetables(savedTimetables || []);
+        setActiveTimetable(savedActive || '');
+      } catch (error) {
+        console.error('Error loading timetables:', error);
+      }
+    }
   }, []);
 
-  // Save function updates both state and localStorage
-  const save = (newTimetables, newActive) => {
-    const data = { timetables: newTimetables, activeTimetable: newActive };
-    localStorage.setItem("studyverse_timetables", JSON.stringify(data));
-    setTimetables(newTimetables);
-    setActive(newActive);
-  };
+  // Save to localStorage whenever timetables or active timetable changes
+  useEffect(() => {
+    localStorage.setItem('studyverse_timetables', JSON.stringify({
+      timetables,
+      activeTimetable
+    }));
+  }, [timetables, activeTimetable]);
 
-  // Add a new timetable and make it active immediately
   const addTimetable = (name, schedule) => {
-    if (!name.trim()) return;
-    const newTimetables = [...timetables, { name, schedule }];
-    save(newTimetables, name); // set new timetable as active
+    const newTimetable = { name, schedule };
+    const updatedTimetables = [...timetables, newTimetable];
+    setTimetables(updatedTimetables);
+    setActiveTimetable(name);
   };
 
-  // Set an existing timetable as active
-  const setActiveTimetable = (name) => {
-    const exists = timetables.find((t) => t.name === name);
-    if (!exists) return;
-    save(timetables, name);
+  const updateTimetable = (index, name, schedule) => {
+    const updatedTimetables = [...timetables];
+    updatedTimetables[index] = { name, schedule };
+    setTimetables(updatedTimetables);
+    setActiveTimetable(name);
   };
 
-  // Get schedule of currently active timetable
-  const getActiveSchedule = () => {
-    const found = timetables.find((t) => t.name === active);
-    return found ? found.schedule : [];
+  const deleteTimetable = (index) => {
+    const updatedTimetables = timetables.filter((_, i) => i !== index);
+    setTimetables(updatedTimetables);
+    
+    // If deleting active timetable, set active to first available or empty
+    if (activeTimetable === timetables[index].name) {
+      setActiveTimetable(updatedTimetables[0]?.name || '');
+    }
   };
 
-  return { timetables, active, addTimetable, setActiveTimetable, getActiveSchedule };
+  const getActiveTimetable = () => {
+    return timetables.find(t => t.name === activeTimetable);
+  };
+
+  return {
+    timetables,
+    activeTimetable,
+    setActiveTimetable,
+    addTimetable,
+    updateTimetable,
+    deleteTimetable,
+    getActiveTimetable
+  };
 }
