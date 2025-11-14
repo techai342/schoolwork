@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import useTimetable from "../hooks/useTimetable";
 
 export default function TimetableSettings() {
@@ -222,20 +222,4 @@ export default function TimetableSettings() {
       </div>
     </div>
   );
-}
-
-export function timeToMinutes(timeStr) {
-  if (!timeStr) return -1;
-  
-  const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (!timeMatch) return -1;
-  
-  let [_, hours, minutes, period] = timeMatch;
-  hours = parseInt(hours);
-  minutes = parseInt(minutes);
-  
-  if (period.toUpperCase() === "PM" && hours !== 12) hours += 12;
-  if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
-  
-  return hours * 60 + minutes;
 }
