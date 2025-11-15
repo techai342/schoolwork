@@ -344,7 +344,7 @@ export default function TimetableSettings() {
               </h3>
               <button
                 onClick={() => setSettingsModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
               >
                 ✕
               </button>
@@ -353,39 +353,39 @@ export default function TimetableSettings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {/* Time Format */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 dark:text-white">🕐 Time Format</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🕐 Time Format</h4>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={timetableSettings.militaryTime}
                       onChange={(e) => setTimetableSettings({...timetableSettings, militaryTime: e.target.checked})}
-                      className="rounded"
+                      className="rounded w-4 h-4"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">24-hour format</span>
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">24-hour format</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={timetableSettings.showMinutes}
                       onChange={(e) => setTimetableSettings({...timetableSettings, showMinutes: e.target.checked})}
-                      className="rounded"
+                      className="rounded w-4 h-4"
                     />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Show 15-minute intervals</span>
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show 15-minute intervals</span>
                   </label>
                 </div>
               </div>
 
               {/* Time Range */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 dark:text-white">⏰ Daily Range</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">⏰ Daily Range</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Start Hour</label>
                     <select
                       value={timetableSettings.startHour}
                       onChange={(e) => setTimetableSettings({...timetableSettings, startHour: parseInt(e.target.value)})}
-                      className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm"
+                      className="w-full px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
                     >
                       {Array.from({length: 24}, (_, i) => (
                         <option key={i} value={i}>{i}:00</option>
@@ -397,7 +397,7 @@ export default function TimetableSettings() {
                     <select
                       value={timetableSettings.endHour}
                       onChange={(e) => setTimetableSettings({...timetableSettings, endHour: parseInt(e.target.value)})}
-                      className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm"
+                      className="w-full px-2 py-1 sm:px-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
                     >
                       {Array.from({length: 24}, (_, i) => (
                         <option key={i} value={i}>{i}:00</option>
@@ -409,11 +409,11 @@ export default function TimetableSettings() {
 
               {/* Default Duration */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 dark:text-white">⏱️ Default Duration</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">⏱️ Default Duration</h4>
                 <select
                   value={timetableSettings.slotDuration}
                   onChange={(e) => setTimetableSettings({...timetableSettings, slotDuration: parseInt(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
                 >
                   <option value={15}>15 minutes</option>
                   <option value={30}>30 minutes</option>
@@ -426,13 +426,13 @@ export default function TimetableSettings() {
 
               {/* Theme */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 dark:text-white">🎨 Theme Color</h4>
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🎨 Theme Color</h4>
                 <div className="flex gap-2 flex-wrap">
                   {['blue', 'green', 'purple', 'orange', 'pink', 'indigo'].map(color => (
                     <button
                       key={color}
                       onClick={() => setTimetableSettings({...timetableSettings, theme: color})}
-                      className={`w-8 h-8 rounded-full bg-${color}-500 ${
+                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-${color}-500 ${
                         timetableSettings.theme === color ? 'ring-2 ring-offset-2 ring-gray-400' : ''
                       }`}
                     />
@@ -441,7 +441,7 @@ export default function TimetableSettings() {
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600 flex-col sm:flex-row">
               <button
                 onClick={resetToDefaults}
                 className="flex-1 flex items-center justify-center gap-2 bg-gray-500 hover:bg-gray-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition text-sm sm:text-base"
@@ -466,17 +466,17 @@ export default function TimetableSettings() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base w-full sm:w-auto justify-center"
+            className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start order-2 sm:order-1"
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Back to Schedule</span>
           </button>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white text-center sm:text-left flex-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white text-center sm:text-left flex-1 order-1 sm:order-2">
             🕐 Timetable Creator
           </h1>
           <button
             onClick={() => setSettingsModal(true)}
-            className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base w-full sm:w-auto justify-center"
+            className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start order-3"
           >
             <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Settings</span>
@@ -487,7 +487,7 @@ export default function TimetableSettings() {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6">
           
           {/* Sidebar - Timetable Info & Actions */}
-          <div className="xl:col-span-1 space-y-4 sm:space-y-6">
+          <div className="xl:col-span-1 space-y-4 sm:space-y-6 order-2 xl:order-1">
             
             {/* Timetable Name Card */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200 dark:border-gray-700">
@@ -499,7 +499,7 @@ export default function TimetableSettings() {
                 value={timetableName}
                 onChange={(e) => setTimetableName(e.target.value)}
                 placeholder="My Awesome Schedule"
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg font-medium"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base font-medium"
               />
             </div>
 
@@ -512,33 +512,33 @@ export default function TimetableSettings() {
               <div className="space-y-2 sm:space-y-3">
                 <button
                   onClick={addTimeSlot}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-sm sm:text-base"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
                 >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   Add New Slot
                 </button>
 
                 <button
                   onClick={() => quickAddSlots('student')}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-sm sm:text-base"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
                 >
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                   Quick Student Template
                 </button>
 
                 <button
                   onClick={saveTimetable}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-sm sm:text-base"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
                 >
-                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Save className="w-3 h-3 sm:w-4 sm:h-4" />
                   Save Timetable
                 </button>
 
                 <button
                   onClick={clearAll}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-sm sm:text-base"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
                 >
-                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                   Clear All
                 </button>
               </div>
@@ -551,24 +551,24 @@ export default function TimetableSettings() {
               </h2>
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Total Slots:</span>
-                  <span className="font-semibold text-blue-600 dark:text-blue-400 text-sm sm:text-base">{schedule.length}</span>
+                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total Slots:</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400 text-xs sm:text-sm">{schedule.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Activities:</span>
-                  <span className="font-semibold text-green-600 dark:text-green-400 text-sm sm:text-base">
+                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Activities:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-400 text-xs sm:text-sm">
                     {new Set(schedule.map(s => s.activity)).size}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Total Hours:</span>
-                  <span className="font-semibold text-purple-600 dark:text-purple-400 text-sm sm:text-base">
-                    {schedule.reduce((total, slot) => total + parseInt(slot.duration || 0), 0) / 60}
+                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total Hours:</span>
+                  <span className="font-semibold text-purple-600 dark:text-purple-400 text-xs sm:text-sm">
+                    {(schedule.reduce((total, slot) => total + parseInt(slot.duration || 0), 0) / 60).toFixed(1)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Status:</span>
-                  <span className={`font-semibold text-sm sm:text-base ${
+                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Status:</span>
+                  <span className={`font-semibold text-xs sm:text-sm ${
                     schedule.length > 0 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'
                   }`}>
                     {schedule.length > 0 ? 'Ready' : 'Empty'}
@@ -579,8 +579,8 @@ export default function TimetableSettings() {
 
             {/* Tips Card */}
             <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 sm:p-6 text-white">
-              <h3 className="font-semibold mb-2 sm:mb-3 text-base sm:text-lg">💡 Pro Tips</h3>
-              <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-blue-100">
+              <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">💡 Pro Tips</h3>
+              <ul className="space-y-1 sm:space-y-2 text-xs text-blue-100">
                 <li>• Click on time to customize</li>
                 <li>• Use student template for quick setup</li>
                 <li>• Add custom activity names</li>
@@ -592,7 +592,7 @@ export default function TimetableSettings() {
           </div>
 
           {/* Main Content - Schedule Builder */}
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-3 order-1 xl:order-2">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 dark:border-gray-700">
               
               {/* Header */}
@@ -601,15 +601,15 @@ export default function TimetableSettings() {
                   <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
                     🎯 Schedule Builder
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base">
+                  <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm">
                     Create and customize your daily routine - 24 hours available
                   </p>
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                     {schedule.length} {schedule.length === 1 ? 'Slot' : 'Slots'}
                   </span>
-                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow-lg">
+                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                     {timetableSettings.militaryTime ? '24H' : '12H'} Format
                   </span>
                 </div>
@@ -618,30 +618,30 @@ export default function TimetableSettings() {
               {/* Schedule Slots */}
               {schedule.length === 0 ? (
                 <div className="text-center py-8 sm:py-12 md:py-16">
-                  <Clock className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-3 sm:mb-4" />
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
+                  <Clock className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
                     No Time Slots Yet
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-500 mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base">
+                  <p className="text-gray-500 dark:text-gray-500 mb-4 sm:mb-6 max-w-md mx-auto text-xs sm:text-sm">
                     Start by adding your first time slot to build your perfect schedule
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                     <button
                       onClick={addTimeSlot}
-                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition transform hover:scale-105 shadow-lg"
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition transform hover:scale-105 shadow-lg"
                     >
                       + Add First Slot
                     </button>
                     <button
                       onClick={() => quickAddSlots('student')}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition transform hover:scale-105 shadow-lg"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition transform hover:scale-105 shadow-lg"
                     >
                       🚀 Student Template
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3 sm:space-y-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-1 sm:pr-2">
+                <div className="space-y-3 sm:space-y-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                   {schedule.map((slot, index) => (
                     <div 
                       key={slot.id}
@@ -651,12 +651,12 @@ export default function TimetableSettings() {
                       {/* Slot Header */}
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                            <span className="text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300">
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
                               {index + 1}
                             </span>
                           </div>
-                          <h3 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">
+                          <h3 className="font-semibold text-gray-800 dark:text-white text-xs sm:text-sm md:text-base">
                             Time Slot {index + 1}
                           </h3>
                         </div>
@@ -664,21 +664,21 @@ export default function TimetableSettings() {
                         <div className="flex items-center gap-1 sm:gap-2">
                           <button
                             onClick={() => duplicateTimeSlot(index)}
-                            className="p-1 sm:p-2 text-gray-500 hover:text-blue-500 transition"
+                            className="p-1 text-gray-500 hover:text-blue-500 transition"
                             title="Duplicate"
                           >
                             <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                           <button
                             onClick={() => removeTimeSlot(index)}
-                            className="p-1 sm:p-2 text-gray-500 hover:text-red-500 transition"
+                            className="p-1 text-gray-500 hover:text-red-500 transition"
                             title="Delete"
                           >
                             <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                           <button
                             onClick={() => setActiveAccordion(activeAccordion === index ? null : index)}
-                            className="p-1 sm:p-2 text-gray-500 hover:text-gray-700 transition"
+                            className="p-1 text-gray-500 hover:text-gray-700 transition"
                           >
                             {activeAccordion === index ? 
                               <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" /> : 
@@ -688,19 +688,19 @@ export default function TimetableSettings() {
                         </div>
                       </div>
 
-                      {/* Main Content */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                      {/* Main Content - Responsive Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                         
                         {/* Time Selection */}
-                        <div className="space-y-1 sm:space-y-2">
-                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div className="space-y-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                             ⏰ Time Period
                           </label>
-                          <div className="flex gap-1 sm:gap-2">
+                          <div className="flex gap-1">
                             <select
                               value={slot.time}
                               onChange={(e) => updateTimeSlot(index, 'time', e.target.value)}
-                              className="flex-1 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm"
+                              className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                             >
                               {timeSlots.map((time) => (
                                 <option key={time} value={time}>
@@ -710,7 +710,8 @@ export default function TimetableSettings() {
                             </select>
                             <button
                               onClick={() => openCustomTimeModal(index)}
-                              className="px-2 sm:px-3 py-1 sm:py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-lg transition text-xs sm:text-sm"
+                              className="px-2 py-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-lg transition text-xs"
+                              title="Custom Time"
                             >
                               ✏️
                             </button>
@@ -718,14 +719,14 @@ export default function TimetableSettings() {
                         </div>
 
                         {/* Activity Selection */}
-                        <div className="space-y-1 sm:space-y-2">
-                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div className="space-y-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                             🎯 Activity Type
                           </label>
                           <select
                             value={slot.activity}
                             onChange={(e) => updateTimeSlot(index, 'activity', e.target.value)}
-                            className="w-full px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                           >
                             <option value="">Select Activity</option>
                             {activities.map((activity) => (
@@ -737,8 +738,8 @@ export default function TimetableSettings() {
                         </div>
 
                         {/* Custom Name */}
-                        <div className="space-y-1 sm:space-y-2">
-                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div className="space-y-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                             🏷️ Custom Name
                           </label>
                           <input
@@ -746,13 +747,13 @@ export default function TimetableSettings() {
                             value={slot.customName}
                             onChange={(e) => updateTimeSlot(index, 'customName', e.target.value)}
                             placeholder="e.g., Advanced Calculus"
-                            className="w-full px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                           />
                         </div>
 
                         {/* Duration */}
-                        <div className="space-y-1 sm:space-y-2">
-                          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div className="space-y-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                             ⏱️ Duration (min)
                           </label>
                           <input
@@ -760,7 +761,7 @@ export default function TimetableSettings() {
                             value={slot.duration}
                             onChange={(e) => updateTimeSlot(index, 'duration', e.target.value)}
                             placeholder="60"
-                            className="w-full px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                           />
                         </div>
                       </div>
@@ -770,15 +771,15 @@ export default function TimetableSettings() {
                         <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-600 space-y-3 sm:space-y-4">
                           
                           {/* Priority & Flexibility */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                            <div className="space-y-1 sm:space-y-2">
-                              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+                            <div className="space-y-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                                 🎯 Priority Level
                               </label>
                               <select
                                 value={slot.priority}
                                 onChange={(e) => updateTimeSlot(index, 'priority', e.target.value)}
-                                className="w-full px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                               >
                                 <option value="low">Low Priority</option>
                                 <option value="medium">Medium Priority</option>
@@ -787,8 +788,8 @@ export default function TimetableSettings() {
                               </select>
                             </div>
                             
-                            <div className="space-y-1 sm:space-y-2">
-                              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div className="space-y-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                                 🔄 Flexible Timing
                               </label>
                               <label className="flex items-center gap-2">
@@ -796,16 +797,16 @@ export default function TimetableSettings() {
                                   type="checkbox"
                                   checked={slot.isFlexible}
                                   onChange={(e) => updateTimeSlot(index, 'isFlexible', e.target.checked)}
-                                  className="rounded"
+                                  className="rounded w-3 h-3"
                                 />
-                                <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Can be rescheduled</span>
+                                <span className="text-xs text-gray-700 dark:text-gray-300">Can be rescheduled</span>
                               </label>
                             </div>
                           </div>
 
                           {/* Notes */}
-                          <div className="space-y-1 sm:space-y-2">
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div className="space-y-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                               📝 Notes & Details
                             </label>
                             <textarea
@@ -813,19 +814,19 @@ export default function TimetableSettings() {
                               onChange={(e) => updateTimeSlot(index, 'note', e.target.value)}
                               placeholder="Add specific details, goals, or reminders for this time slot..."
                               rows="2"
-                              className="w-full px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm resize-none"
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs resize-none"
                             />
                           </div>
 
                           {/* Color Theme */}
-                          <div className="space-y-1 sm:space-y-2">
-                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                          <div className="space-y-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
                               🎨 Color Theme
                             </label>
                             <select
                               value={slot.color}
                               onChange={(e) => updateTimeSlot(index, 'color', e.target.value)}
-                              className="w-full px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs sm:text-sm"
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                             >
                               {activities.map((activity) => (
                                 <option key={activity.color} value={activity.color}>
@@ -837,23 +838,23 @@ export default function TimetableSettings() {
 
                           {/* Preview */}
                           <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-2 sm:p-3">
-                            <h4 className="font-medium text-gray-800 dark:text-white mb-1 sm:mb-2 text-xs sm:text-sm">Preview:</h4>
+                            <h4 className="font-medium text-gray-800 dark:text-white mb-1 text-xs">Preview:</h4>
                             <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-r ${slot.color} text-white shadow-lg`}>
                               <div className="flex justify-between items-center">
                                 <div>
-                                  <div className="font-semibold text-xs sm:text-sm">
+                                  <div className="font-semibold text-xs">
                                     {slot.customName || slot.activity || "No Activity"}
                                   </div>
                                   <div className="text-xs opacity-90">{slot.time}</div>
                                 </div>
-                                <div className="text-xs bg-black bg-opacity-20 px-1 sm:px-2 py-0.5 sm:py-1 rounded">
+                                <div className="text-xs bg-black bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
                                   {slot.duration} min
                                 </div>
                               </div>
                               {slot.note && (
-                                <div className="text-xs mt-1 sm:mt-2 opacity-90">{slot.note}</div>
+                                <div className="text-xs mt-1 opacity-90">{slot.note}</div>
                               )}
-                              <div className="flex justify-between items-center mt-1 sm:mt-2">
+                              <div className="flex justify-between items-center mt-1">
                                 <span className="text-xs bg-white bg-opacity-20 px-1 sm:px-2 py-0.5 rounded capitalize">
                                   {slot.priority}
                                 </span>
@@ -877,16 +878,16 @@ export default function TimetableSettings() {
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
                   <button
                     onClick={addTimeSlot}
-                    className="flex-1 flex items-center justify-center gap-1 sm:gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition text-sm sm:text-base"
+                    className="flex-1 flex items-center justify-center gap-1 sm:gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition text-xs sm:text-sm"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                     Add Another Slot
                   </button>
                   <button
                     onClick={saveTimetable}
-                    className="flex-1 flex items-center justify-center gap-1 sm:gap-2 bg-green-500 hover:bg-green-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition text-sm sm:text-base"
+                    className="flex-1 flex items-center justify-center gap-1 sm:gap-2 bg-green-500 hover:bg-green-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition text-xs sm:text-sm"
                   >
-                    <Save className="w-4 h-4" />
+                    <Save className="w-3 h-3 sm:w-4 sm:h-4" />
                     Save Timetable
                   </button>
                 </div>
@@ -899,41 +900,48 @@ export default function TimetableSettings() {
       {/* Custom Styles */}
       <style jsx>{`
         /* Custom scrollbar */
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 6px;
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
         }
-        .overflow-y-auto::-webkit-scrollbar-track {
+        .custom-scrollbar::-webkit-scrollbar-track {
           background: #f1f1f1;
           border-radius: 10px;
         }
-        .overflow-y-auto::-webkit-scrollbar-thumb {
+        .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #c1c1c1;
           border-radius: 10px;
         }
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #a8a8a8;
         }
         
         /* Dark mode scrollbar */
-        .dark .overflow-y-auto::-webkit-scrollbar-track {
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
           background: #374151;
         }
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #6b7280;
         }
-        .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #9ca3af;
         }
         
-        /* Smooth transitions */
-        * {
-          transition: all 0.2s ease-in-out;
-        }
-
         /* Mobile optimizations */
         @media (max-width: 640px) {
           .grid-cols-1 > * {
             min-width: 100%;
+          }
+          
+          /* Improve touch targets */
+          button, select, input {
+            min-height: 44px;
+          }
+        }
+
+        /* Better responsive text */
+        @media (max-width: 480px) {
+          .text-responsive {
+            font-size: 0.875rem;
           }
         }
       `}</style>
