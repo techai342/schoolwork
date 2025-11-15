@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import useTimetable from "../hooks/useTimetable";
 import { 
@@ -18,7 +18,26 @@ import {
   RotateCcw,
   Zap,
   Star,
-  Target
+  Target,
+  Palette,
+  Layers,
+  Download,
+  Upload,
+  Eye,
+  EyeOff,
+  Grid,
+  List,
+  Search,
+  Filter,
+  Share,
+  Lock,
+  Unlock,
+  Move,
+  Type,
+  Image,
+  Layout,
+  Moon,
+  Sun
 } from "lucide-react";
 
 export default function TimetableSettings() {
@@ -29,7 +48,9 @@ export default function TimetableSettings() {
     addTimetable, 
     updateTimetable, 
     deleteTimetable,
-    setActiveTimetable 
+    setActiveTimetable,
+    importTimetable,
+    exportTimetable
   } = useTimetable();
 
   const [timetableName, setTimetableName] = useState("");
@@ -39,43 +60,131 @@ export default function TimetableSettings() {
   const [customTimeInput, setCustomTimeInput] = useState("");
   const [activeAccordion, setActiveAccordion] = useState(null);
   const [settingsModal, setSettingsModal] = useState(false);
+  const [activitiesModal, setActivitiesModal] = useState(false);
+  const [appearanceModal, setAppearanceModal] = useState(false);
+  const [importExportModal, setImportExportModal] = useState(false);
+  const [dragIndex, setDragIndex] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [isDragging, setIsDragging] = useState(false);
+  const [newActivity, setNewActivity] = useState({ 
+    name: "", 
+    icon: "📝", 
+    color: "from-blue-500 to-cyan-400", 
+    category: "custom" 
+  });
+  
+  // Advanced timetable settings with complete customization
   const [timetableSettings, setTimetableSettings] = useState({
-    startHour: 6,
-    endHour: 22,
+    // Time settings
+    startHour: 0,
+    endHour: 23,
     slotDuration: 60,
     showMinutes: true,
     militaryTime: false,
     enableNotifications: true,
-    theme: "blue"
+    
+    // Appearance settings
+    theme: "blue",
+    background: "gradient", // gradient, solid, image, custom
+    customBackground: "",
+    cardStyle: "modern", // modern, minimal, classic, custom
+    fontSize: "medium", // small, medium, large, xlarge
+    fontFamily: "default", // default, serif, monospace, custom
+    customFont: "",
+    
+    // Layout settings
+    timeFormat: "range", // range, start-end, duration
+    showIcons: true,
+    showNotes: true,
+    showDuration: true,
+    showPriority: true,
+    compactMode: false,
+    
+    // Behavior settings
+    autoSave: true,
+    confirmDeletion: true,
+    enableDragDrop: true,
+    enableQuickAdd: true,
+    enableTemplates: true,
+    
+    // Advanced settings
+    customCSS: "",
+    customJS: "",
+    enableAdvanced: false
   });
 
-  // Enhanced activities with more options
-  const activities = [
-    { name: "Math Study", icon: "📊", color: "from-blue-500 to-cyan-400", category: "academic" },
-    { name: "Physics Practice", icon: "⚛️", color: "from-green-500 to-emerald-400", category: "academic" },
-    { name: "Computer Science", icon: "💻", color: "from-purple-500 to-pink-400", category: "academic" },
-    { name: "English Reading", icon: "📚", color: "from-yellow-500 to-orange-400", category: "academic" },
-    { name: "Revision", icon: "🔄", color: "from-indigo-500 to-violet-400", category: "academic" },
-    { name: "College Classes", icon: "🎓", color: "from-red-500 to-pink-400", category: "academic" },
-    { name: "Break Time", icon: "☕", color: "from-amber-500 to-yellow-400", category: "break" },
-    { name: "Exercise", icon: "💪", color: "from-teal-500 to-green-400", category: "health" },
-    { name: "Lunch Break", icon: "🍽️", color: "from-orange-500 to-red-400", category: "break" },
-    { name: "Dinner", icon: "🍲", color: "from-rose-500 to-pink-400", category: "break" },
-    { name: "Sleep/Rest", icon: "😴", color: "from-gray-500 to-slate-400", category: "health" },
-    { name: "Family Time", icon: "👨‍👩‍👧‍👦", color: "from-cyan-500 to-blue-400", category: "personal" },
-    { name: "Travel Time", icon: "🚗", color: "from-lime-500 to-green-400", category: "personal" },
-    { name: "Self Study", icon: "🧠", color: "from-fuchsia-500 to-purple-400", category: "academic" },
-    { name: "Project Work", icon: "🔧", color: "from-amber-500 to-orange-400", category: "academic" },
-    { name: "Exam Preparation", icon: "📝", color: "from-red-500 to-orange-400", category: "academic" },
-    { name: "Group Study", icon: "👥", color: "from-purple-500 to-indigo-400", category: "academic" },
-    { name: "Research", icon: "🔍", color: "from-blue-500 to-indigo-400", category: "academic" },
-    { name: "Yoga/Meditation", icon: "🧘", color: "from-green-500 to-teal-400", category: "health" },
-    { name: "Sports", icon: "⚽", color: "from-emerald-500 to-green-400", category: "health" },
-    { name: "Music Practice", icon: "🎵", color: "from-pink-500 to-rose-400", category: "personal" },
-    { name: "Hobby Time", icon: "🎨", color: "from-violet-500 to-purple-400", category: "personal" },
-    { name: "Shopping", icon: "🛒", color: "from-orange-500 to-amber-400", category: "personal" },
-    { name: "Social Media", icon: "📱", color: "from-gray-500 to-blue-400", category: "break" },
-    { name: "Gaming", icon: "🎮", color: "from-green-500 to-lime-400", category: "break" }
+  // Enhanced activities with more options and custom categories
+  const [customActivities, setCustomActivities] = useState([
+    { name: "Math Study", icon: "📊", color: "from-blue-500 to-cyan-400", category: "academic", custom: false },
+    { name: "Physics Practice", icon: "⚛️", color: "from-green-500 to-emerald-400", category: "academic", custom: false },
+    { name: "Computer Science", icon: "💻", color: "from-purple-500 to-pink-400", category: "academic", custom: false },
+    { name: "English Reading", icon: "📚", color: "from-yellow-500 to-orange-400", category: "academic", custom: false },
+    { name: "Revision", icon: "🔄", color: "from-indigo-500 to-violet-400", category: "academic", custom: false },
+    { name: "College Classes", icon: "🎓", color: "from-red-500 to-pink-400", category: "academic", custom: false },
+    { name: "Break Time", icon: "☕", color: "from-amber-500 to-yellow-400", category: "break", custom: false },
+    { name: "Exercise", icon: "💪", color: "from-teal-500 to-green-400", category: "health", custom: false },
+    { name: "Lunch Break", icon: "🍽️", color: "from-orange-500 to-red-400", category: "break", custom: false },
+    { name: "Dinner", icon: "🍲", color: "from-rose-500 to-pink-400", category: "break", custom: false },
+    { name: "Sleep/Rest", icon: "😴", color: "from-gray-500 to-slate-400", category: "health", custom: false },
+    { name: "Family Time", icon: "👨‍👩‍👧‍👦", color: "from-cyan-500 to-blue-400", category: "personal", custom: false },
+    { name: "Travel Time", icon: "🚗", color: "from-lime-500 to-green-400", category: "personal", custom: false },
+    { name: "Self Study", icon: "🧠", color: "from-fuchsia-500 to-purple-400", category: "academic", custom: false },
+    { name: "Project Work", icon: "🔧", color: "from-amber-500 to-orange-400", category: "academic", custom: false },
+    { name: "Exam Preparation", icon: "📝", color: "from-red-500 to-orange-400", category: "academic", custom: false },
+    { name: "Group Study", icon: "👥", color: "from-purple-500 to-indigo-400", category: "academic", custom: false },
+    { name: "Research", icon: "🔍", color: "from-blue-500 to-indigo-400", category: "academic", custom: false },
+    { name: "Yoga/Meditation", icon: "🧘", color: "from-green-500 to-teal-400", category: "health", custom: false },
+    { name: "Sports", icon: "⚽", color: "from-emerald-500 to-green-400", category: "health", custom: false },
+    { name: "Music Practice", icon: "🎵", color: "from-pink-500 to-rose-400", category: "personal", custom: false },
+    { name: "Hobby Time", icon: "🎨", color: "from-violet-500 to-purple-400", category: "personal", custom: false },
+    { name: "Shopping", icon: "🛒", color: "from-orange-500 to-amber-400", category: "personal", custom: false },
+    { name: "Social Media", icon: "📱", color: "from-gray-500 to-blue-400", category: "break", custom: false },
+    { name: "Gaming", icon: "🎮", color: "from-green-500 to-lime-400", category: "break", custom: false }
+  ]);
+
+  // Available icons for custom activities
+  const availableIcons = [
+    "📊", "⚛️", "💻", "📚", "🔄", "🎓", "☕", "💪", "🍽️", "🍲", "😴", 
+    "👨‍👩‍👧‍👦", "🚗", "🧠", "🔧", "📝", "👥", "🔍", "🧘", "⚽", "🎵", "🎨", 
+    "🛒", "📱", "🎮", "⏰", "🎯", "⭐", "🔔", "📅", "🏠", "🚀", "💰", 
+    "❤️", "🌟", "🎉", "📢", "🔒", "🔑", "💡", "🎨", "📷", "🎬", "🎤",
+    "🏆", "🎪", "🌍", "🍎", "🚴", "📞", "✈️", "🏥", "💼", "🛌"
+  ];
+
+  // Available color gradients
+  const colorGradients = [
+    "from-blue-500 to-cyan-400",
+    "from-green-500 to-emerald-400",
+    "from-purple-500 to-pink-400",
+    "from-yellow-500 to-orange-400",
+    "from-indigo-500 to-violet-400",
+    "from-red-500 to-pink-400",
+    "from-amber-500 to-yellow-400",
+    "from-teal-500 to-green-400",
+    "from-orange-500 to-red-400",
+    "from-rose-500 to-pink-400",
+    "from-gray-500 to-slate-400",
+    "from-cyan-500 to-blue-400",
+    "from-lime-500 to-green-400",
+    "from-fuchsia-500 to-purple-400",
+    "from-amber-500 to-orange-400",
+    "from-red-500 to-orange-400",
+    "from-purple-500 to-indigo-400",
+    "from-blue-500 to-indigo-400",
+    "from-green-500 to-teal-400",
+    "from-emerald-500 to-green-400",
+    "from-pink-500 to-rose-400",
+    "from-violet-500 to-purple-400",
+    "from-orange-500 to-amber-400",
+    "from-gray-500 to-blue-400",
+    "from-green-500 to-lime-400"
+  ];
+
+  // Activity categories
+  const activityCategories = [
+    "all", "academic", "break", "health", "personal", "work", "custom"
   ];
 
   // Load existing timetable
@@ -88,23 +197,31 @@ export default function TimetableSettings() {
         if (existingTimetable.settings) {
           setTimetableSettings(existingTimetable.settings);
         }
+        if (existingTimetable.customActivities) {
+          setCustomActivities(prev => [...prev, ...existingTimetable.customActivities.filter(ca => !prev.some(pa => pa.name === ca.name))]);
+        }
       }
     }
   }, [activeTimetable, timetables]);
 
-  // Enhanced time slot generation with 24-hour support
+  // Enhanced time slot generation with 24-hour support and custom intervals
   const generateTimeSlots = () => {
     const slots = [];
-    const { startHour, endHour, militaryTime, showMinutes } = timetableSettings;
+    const { startHour, endHour, militaryTime, showMinutes, slotDuration } = timetableSettings;
+    
+    // Calculate intervals based on slot duration
+    const intervalsPerHour = 60 / (showMinutes ? Math.min(slotDuration, 60) : 60);
+    const intervals = showMinutes ? 
+      Array.from({length: intervalsPerHour}, (_, i) => i * (60 / intervalsPerHour)) : [0];
     
     for (let hour = startHour; hour <= endHour; hour++) {
-      const intervals = showMinutes ? [0, 15, 30, 45] : [0];
-      
       for (let minute of intervals) {
         if (hour === endHour && minute > 0) continue;
         
-        const nextHour = minute === 45 ? hour + 1 : hour;
-        const nextMinute = minute === 45 ? 0 : minute + (showMinutes ? 15 : 60);
+        const totalMinutes = hour * 60 + minute;
+        const endTotalMinutes = totalMinutes + slotDuration;
+        const nextHour = Math.floor(endTotalMinutes / 60);
+        const nextMinute = endTotalMinutes % 60;
         
         let startTime, endTime;
         
@@ -121,7 +238,25 @@ export default function TimetableSettings() {
           endTime = `${displayNextHour}:${nextMinute.toString().padStart(2, '0')} ${endPeriod}`;
         }
         
-        slots.push(`${startTime} - ${endTime}`);
+        // Support for different time formats
+        let timeDisplay;
+        switch(timetableSettings.timeFormat) {
+          case "start-end":
+            timeDisplay = `${startTime} to ${endTime}`;
+            break;
+          case "duration":
+            const durationHours = Math.floor(slotDuration / 60);
+            const durationMinutes = slotDuration % 60;
+            let durationText = "";
+            if (durationHours > 0) durationText += `${durationHours}h `;
+            if (durationMinutes > 0) durationText += `${durationMinutes}m`;
+            timeDisplay = `${startTime} (${durationText.trim()})`;
+            break;
+          default: // range
+            timeDisplay = `${startTime} - ${endTime}`;
+        }
+        
+        slots.push(timeDisplay);
       }
     }
     return slots;
@@ -130,7 +265,7 @@ export default function TimetableSettings() {
   const timeSlots = generateTimeSlots();
 
   const addTimeSlot = () => {
-    const defaultTime = timeSlots[0] || "6:00 AM - 7:00 AM";
+    const defaultTime = timeSlots[0] || "12:00 AM - 1:00 AM";
     const newSlot = {
       id: Date.now() + Math.random(),
       time: defaultTime,
@@ -140,7 +275,13 @@ export default function TimetableSettings() {
       duration: timetableSettings.slotDuration.toString(),
       color: "from-blue-500 to-cyan-400",
       priority: "medium",
-      isFlexible: false
+      isFlexible: false,
+      isPrivate: false,
+      tags: [],
+      reminder: false,
+      reminderTime: 5,
+      repeat: "never",
+      customCSS: ""
     };
     setSchedule([...schedule, newSlot]);
   };
@@ -150,7 +291,7 @@ export default function TimetableSettings() {
     updatedSchedule[index][field] = value;
     
     if (field === 'activity') {
-      const selectedActivity = activities.find(a => a.name === value);
+      const selectedActivity = [...customActivities].find(a => a.name === value);
       if (selectedActivity) {
         updatedSchedule[index].color = selectedActivity.color;
       }
@@ -160,12 +301,21 @@ export default function TimetableSettings() {
   };
 
   const removeTimeSlot = (index) => {
+    if (timetableSettings.confirmDeletion) {
+      if (!window.confirm("🗑️ Are you sure you want to delete this time slot?")) {
+        return;
+      }
+    }
     const updatedSchedule = schedule.filter((_, i) => i !== index);
     setSchedule(updatedSchedule);
   };
 
   const duplicateTimeSlot = (index) => {
-    const slotToDuplicate = { ...schedule[index], id: Date.now() + Math.random() };
+    const slotToDuplicate = { 
+      ...schedule[index], 
+      id: Date.now() + Math.random(),
+      customName: schedule[index].customName ? `${schedule[index].customName} (Copy)` : ""
+    };
     const updatedSchedule = [...schedule];
     updatedSchedule.splice(index + 1, 0, slotToDuplicate);
     setSchedule(updatedSchedule);
@@ -186,6 +336,94 @@ export default function TimetableSettings() {
     }
   };
 
+  // Drag and drop functionality
+  const handleDragStart = (e, index) => {
+    if (!timetableSettings.enableDragDrop) return;
+    setDragIndex(index);
+    setIsDragging(true);
+    e.dataTransfer.effectAllowed = "move";
+    // Add a small delay for better UX
+    setTimeout(() => {
+      e.target.classList.add("opacity-50");
+    }, 0);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    if (!timetableSettings.enableDragDrop) return;
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, index) => {
+    e.preventDefault();
+    if (!timetableSettings.enableDragDrop || dragIndex === null) return;
+    
+    const updatedSchedule = [...schedule];
+    const [movedItem] = updatedSchedule.splice(dragIndex, 1);
+    updatedSchedule.splice(index, 0, movedItem);
+    
+    setSchedule(updatedSchedule);
+    setDragIndex(null);
+    setIsDragging(false);
+    
+    // Remove opacity class from all elements
+    document.querySelectorAll('.time-slot-item').forEach(el => {
+      el.classList.remove("opacity-50");
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setDragIndex(null);
+    // Remove opacity class from all elements
+    document.querySelectorAll('.time-slot-item').forEach(el => {
+      el.classList.remove("opacity-50");
+    });
+  };
+
+  // Add custom activity
+  const addCustomActivity = () => {
+    if (!newActivity.name.trim()) {
+      alert("Please enter an activity name");
+      return;
+    }
+    
+    // Check if activity already exists
+    if (customActivities.some(a => a.name === newActivity.name)) {
+      alert("An activity with this name already exists");
+      return;
+    }
+    
+    const activityToAdd = {
+      ...newActivity,
+      custom: true
+    };
+    
+    setCustomActivities([...customActivities, activityToAdd]);
+    setNewActivity({ name: "", icon: "📝", color: "from-blue-500 to-cyan-400", category: "custom" });
+  };
+
+  // Remove custom activity
+  const removeCustomActivity = (index) => {
+    const activityToRemove = customActivities[index];
+    if (!activityToRemove.custom) {
+      alert("You can only remove custom activities");
+      return;
+    }
+    
+    const updatedActivities = [...customActivities];
+    updatedActivities.splice(index, 1);
+    setCustomActivities(updatedActivities);
+  };
+
+  // Filter activities based on search and category
+  const filteredActivities = customActivities.filter(activity => {
+    const matchesSearch = activity.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === "all" || activity.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Save timetable with all customizations
   const saveTimetable = () => {
     if (!timetableName.trim()) {
       alert("📛 Please enter a timetable name");
@@ -193,26 +431,42 @@ export default function TimetableSettings() {
     }
 
     if (schedule.length === 0) {
-      alert("⏰ Please add at least one time slot");
-      return;
+      if (!window.confirm("⏰ Your timetable has no time slots. Save anyway?")) {
+        return;
+      }
     }
 
     const incompleteSlots = schedule.filter(slot => !slot.activity.trim());
-    if (incompleteSlots.length > 0) {
-      alert("⚠️ Please select an activity for all time slots");
+    if (incompleteSlots.length > 0 && !window.confirm("⚠️ Some time slots don't have activities. Save anyway?")) {
       return;
     }
 
     const existingIndex = timetables.findIndex(t => t.name === activeTimetable);
     
+    // Save custom activities with this timetable
+    const customActivitiesForTimetable = customActivities.filter(a => a.custom);
+    
     if (existingIndex !== -1) {
-      updateTimetable(existingIndex, timetableName, schedule, timetableSettings);
+      updateTimetable(
+        existingIndex, 
+        timetableName, 
+        schedule, 
+        timetableSettings,
+        customActivitiesForTimetable
+      );
     } else {
-      addTimetable(timetableName, schedule, timetableSettings);
+      addTimetable(
+        timetableName, 
+        schedule, 
+        timetableSettings,
+        customActivitiesForTimetable
+      );
     }
 
     alert(`✅ Timetable "${timetableName}" saved successfully!`);
-    navigate("/");
+    if (!timetableSettings.autoSave) {
+      navigate("/");
+    }
   };
 
   const clearAll = () => {
@@ -230,7 +484,27 @@ export default function TimetableSettings() {
         showMinutes: true,
         militaryTime: false,
         enableNotifications: true,
-        theme: "blue"
+        theme: "blue",
+        background: "gradient",
+        customBackground: "",
+        cardStyle: "modern",
+        fontSize: "medium",
+        fontFamily: "default",
+        customFont: "",
+        timeFormat: "range",
+        showIcons: true,
+        showNotes: true,
+        showDuration: true,
+        showPriority: true,
+        compactMode: false,
+        autoSave: true,
+        confirmDeletion: true,
+        enableDragDrop: true,
+        enableQuickAdd: true,
+        enableTemplates: true,
+        customCSS: "",
+        customJS: "",
+        enableAdvanced: false
       });
     }
   };
@@ -259,7 +533,7 @@ export default function TimetableSettings() {
         const startTime = new Date(baseTime.getTime() + index * 75 * 60000);
         const endTime = new Date(startTime.getTime() + item.duration * 60000);
         
-        const activity = activities.find(a => a.name === item.activity) || activities[0];
+        const activity = customActivities.find(a => a.name === item.activity) || customActivities[0];
         
         newSlots.push({
           id: Date.now() + Math.random() + index,
@@ -270,7 +544,51 @@ export default function TimetableSettings() {
           duration: item.duration.toString(),
           color: activity.color,
           priority: "medium",
-          isFlexible: false
+          isFlexible: false,
+          isPrivate: false,
+          tags: [],
+          reminder: false,
+          reminderTime: 5,
+          repeat: "never",
+          customCSS: ""
+        });
+      });
+    } else if (type === 'work') {
+      const workSchedule = [
+        { activity: "Morning Commute", duration: 30 },
+        { activity: "Check Emails", duration: 30 },
+        { activity: "Project Work", duration: 120 },
+        { activity: "Coffee Break", duration: 15 },
+        { activity: "Meetings", duration: 60 },
+        { activity: "Lunch Break", duration: 45 },
+        { activity: "Deep Work", duration: 90 },
+        { activity: "Break Time", duration: 15 },
+        { activity: "Task Review", duration: 60 },
+        { activity: "Evening Commute", duration: 30 }
+      ];
+
+      workSchedule.forEach((item, index) => {
+        const startTime = new Date(baseTime.getTime() + index * 75 * 60000);
+        const endTime = new Date(startTime.getTime() + item.duration * 60000);
+        
+        const activity = customActivities.find(a => a.name === item.activity) || customActivities[0];
+        
+        newSlots.push({
+          id: Date.now() + Math.random() + index,
+          time: formatTime(startTime, endTime),
+          activity: item.activity,
+          note: "",
+          customName: "",
+          duration: item.duration.toString(),
+          color: activity.color,
+          priority: "medium",
+          isFlexible: false,
+          isPrivate: false,
+          tags: [],
+          reminder: false,
+          reminderTime: 5,
+          repeat: "never",
+          customCSS: ""
         });
       });
     }
@@ -292,15 +610,78 @@ export default function TimetableSettings() {
     }
   };
 
-  const moveSlot = (fromIndex, toIndex) => {
-    const updatedSchedule = [...schedule];
-    const [movedSlot] = updatedSchedule.splice(fromIndex, 1);
-    updatedSchedule.splice(toIndex, 0, movedSlot);
-    setSchedule(updatedSchedule);
+  // Import/Export functionality
+  const handleImport = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        importTimetable(importedData);
+        alert("Timetable imported successfully!");
+        setImportExportModal(false);
+      } catch (error) {
+        alert("Error importing timetable: " + error.message);
+      }
+    };
+    reader.readAsText(file);
   };
 
+  const handleExport = () => {
+    const timetableData = {
+      name: timetableName,
+      schedule: schedule,
+      settings: timetableSettings,
+      customActivities: customActivities.filter(a => a.custom)
+    };
+    
+    exportTimetable(timetableData);
+    setImportExportModal(false);
+  };
+
+  // Apply custom CSS and JS if advanced mode is enabled
+  useEffect(() => {
+    if (timetableSettings.enableAdvanced) {
+      // Apply custom CSS
+      if (timetableSettings.customCSS) {
+        const styleElement = document.createElement('style');
+        styleElement.textContent = timetableSettings.customCSS;
+        document.head.appendChild(styleElement);
+        
+        return () => {
+          document.head.removeChild(styleElement);
+        };
+      }
+      
+      // Apply custom JS - Note: Be careful with this in a real app
+      if (timetableSettings.customJS) {
+        try {
+          // Using Function constructor for safety
+          const customFunction = new Function(timetableSettings.customJS);
+          customFunction();
+        } catch (error) {
+          console.error("Error executing custom JS:", error);
+        }
+      }
+    }
+  }, [timetableSettings.enableAdvanced, timetableSettings.customCSS, timetableSettings.customJS]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6">
+    <div className={`min-h-screen p-3 sm:p-4 md:p-6 ${
+      timetableSettings.background === 'gradient' 
+        ? 'bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-gray-900 dark:to-gray-800'
+        : timetableSettings.background === 'solid'
+        ? 'bg-gray-100 dark:bg-gray-900'
+        : 'bg-white dark:bg-gray-900'
+    }`} style={
+      timetableSettings.background === 'custom' && timetableSettings.customBackground
+        ? { background: timetableSettings.customBackground }
+        : timetableSettings.background === 'image' && timetableSettings.customBackground
+        ? { backgroundImage: `url(${timetableSettings.customBackground})`, backgroundSize: 'cover' }
+        : {}
+    }>
       
       {/* Custom Time Modal */}
       {customTimeModal && (
@@ -337,7 +718,7 @@ export default function TimetableSettings() {
       {/* Settings Modal */}
       {settingsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-2">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
                 ⚙️ Timetable Settings
@@ -371,7 +752,7 @@ export default function TimetableSettings() {
                       onChange={(e) => setTimetableSettings({...timetableSettings, showMinutes: e.target.checked})}
                       className="rounded w-4 h-4"
                     />
-                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show 15-minute intervals</span>
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show minute intervals</span>
                   </label>
                 </div>
               </div>
@@ -421,23 +802,148 @@ export default function TimetableSettings() {
                   <option value={60}>1 hour</option>
                   <option value={90}>1.5 hours</option>
                   <option value={120}>2 hours</option>
+                  <option value={180}>3 hours</option>
                 </select>
               </div>
 
-              {/* Theme */}
+              {/* Time Display Format */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🎨 Theme Color</h4>
-                <div className="flex gap-2 flex-wrap">
-                  {['blue', 'green', 'purple', 'orange', 'pink', 'indigo'].map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setTimetableSettings({...timetableSettings, theme: color})}
-                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-${color}-500 ${
-                        timetableSettings.theme === color ? 'ring-2 ring-offset-2 ring-gray-400' : ''
-                      }`}
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">📅 Time Display</h4>
+                <select
+                  value={timetableSettings.timeFormat}
+                  onChange={(e) => setTimetableSettings({...timetableSettings, timeFormat: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
+                >
+                  <option value="range">Start - End (6:00 AM - 7:00 AM)</option>
+                  <option value="start-end">Start to End (6:00 AM to 7:00 AM)</option>
+                  <option value="duration">Start with Duration (6:00 AM, 1h)</option>
+                </select>
+              </div>
+
+              {/* Behavior Settings */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🔧 Behavior</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.autoSave}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, autoSave: e.target.checked})}
+                      className="rounded w-4 h-4"
                     />
-                  ))}
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Auto-save changes</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.confirmDeletion}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, confirmDeletion: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Confirm before deletion</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.enableDragDrop}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, enableDragDrop: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Enable drag & drop</span>
+                  </label>
                 </div>
+              </div>
+
+              {/* Display Settings */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">👁️ Display Options</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.showIcons}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, showIcons: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show activity icons</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.showNotes}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, showNotes: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show notes field</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.showDuration}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, showDuration: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show duration</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.showPriority}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, showPriority: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Show priority</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={timetableSettings.compactMode}
+                      onChange={(e) => setTimetableSettings({...timetableSettings, compactMode: e.target.checked})}
+                      className="rounded w-4 h-4"
+                    />
+                    <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Compact mode</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Advanced Settings */}
+              <div className="space-y-3 md:col-span-2">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">⚡ Advanced Settings</h4>
+                <label className="flex items-center gap-2 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={timetableSettings.enableAdvanced}
+                    onChange={(e) => setTimetableSettings({...timetableSettings, enableAdvanced: e.target.checked})}
+                    className="rounded w-4 h-4"
+                  />
+                  <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Enable advanced customization</span>
+                </label>
+                
+                {timetableSettings.enableAdvanced && (
+                  <div className="space-y-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Custom CSS</label>
+                      <textarea
+                        value={timetableSettings.customCSS}
+                        onChange={(e) => setTimetableSettings({...timetableSettings, customCSS: e.target.value})}
+                        placeholder="Enter custom CSS code..."
+                        rows="3"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Custom JavaScript</label>
+                      <textarea
+                        value={timetableSettings.customJS}
+                        onChange={(e) => setTimetableSettings({...timetableSettings, customJS: e.target.value})}
+                        placeholder="Enter custom JavaScript code..."
+                        rows="3"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs font-mono"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Warning: Only use code from trusted sources</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -460,6 +966,353 @@ export default function TimetableSettings() {
         </div>
       )}
 
+      {/* Activities Modal */}
+      {activitiesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto mx-2">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
+                🎯 Manage Activities
+              </h3>
+              <button
+                onClick={() => setActivitiesModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search activities..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm"
+                />
+              </div>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm"
+              >
+                {activityCategories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Add Custom Activity */}
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+              <h4 className="font-semibold text-gray-800 dark:text-white mb-3 text-sm">Add Custom Activity</h4>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input
+                  type="text"
+                  value={newActivity.name}
+                  onChange={(e) => setNewActivity({...newActivity, name: e.target.value})}
+                  placeholder="Activity name"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-sm"
+                />
+                <select
+                  value={newActivity.icon}
+                  onChange={(e) => setNewActivity({...newActivity, icon: e.target.value})}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-sm"
+                >
+                  {availableIcons.map(icon => (
+                    <option key={icon} value={icon}>{icon}</option>
+                  ))}
+                </select>
+                <select
+                  value={newActivity.color}
+                  onChange={(e) => setNewActivity({...newActivity, color: e.target.value})}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-sm"
+                >
+                  {colorGradients.map(gradient => (
+                    <option key={gradient} value={gradient}>
+                      {gradient.split(' ')[0].replace('from-', '').charAt(0).toUpperCase() + gradient.split(' ')[0].replace('from-', '').slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={addCustomActivity}
+                  className="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-semibold transition text-sm"
+                >
+                  Add Activity
+                </button>
+              </div>
+            </div>
+
+            {/* Activities Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredActivities.map((activity, index) => (
+                <div 
+                  key={activity.name}
+                  className={`p-3 rounded-lg border ${
+                    activity.custom 
+                      ? 'border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{activity.icon}</span>
+                      <div>
+                        <div className="font-medium text-gray-800 dark:text-white text-sm">
+                          {activity.name}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                          {activity.category}
+                        </div>
+                      </div>
+                    </div>
+                    {activity.custom && (
+                      <button
+                        onClick={() => removeCustomActivity(index)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className={`mt-2 h-2 rounded-full bg-gradient-to-r ${activity.color}`} />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => setActivitiesModal(false)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition text-sm"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Appearance Modal */}
+      {appearanceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
+                🎨 Appearance Settings
+              </h3>
+              <button
+                onClick={() => setAppearanceModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {/* Background */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🌅 Background</h4>
+                <select
+                  value={timetableSettings.background}
+                  onChange={(e) => setTimetableSettings({...timetableSettings, background: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
+                >
+                  <option value="gradient">Gradient</option>
+                  <option value="solid">Solid Color</option>
+                  <option value="image">Background Image</option>
+                  <option value="custom">Custom CSS</option>
+                </select>
+                
+                {(timetableSettings.background === 'image' || timetableSettings.background === 'custom') && (
+                  <input
+                    type="text"
+                    value={timetableSettings.customBackground}
+                    onChange={(e) => setTimetableSettings({...timetableSettings, customBackground: e.target.value})}
+                    placeholder={
+                      timetableSettings.background === 'image' 
+                        ? "Enter image URL" 
+                        : "Enter CSS background value"
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs"
+                  />
+                )}
+              </div>
+
+              {/* Card Style */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">💳 Card Style</h4>
+                <select
+                  value={timetableSettings.cardStyle}
+                  onChange={(e) => setTimetableSettings({...timetableSettings, cardStyle: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
+                >
+                  <option value="modern">Modern</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="classic">Classic</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+
+              {/* Font Size */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🔤 Font Size</h4>
+                <select
+                  value={timetableSettings.fontSize}
+                  onChange={(e) => setTimetableSettings({...timetableSettings, fontSize: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
+                >
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                  <option value="xlarge">Extra Large</option>
+                </select>
+              </div>
+
+              {/* Font Family */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🔡 Font Family</h4>
+                <select
+                  value={timetableSettings.fontFamily}
+                  onChange={(e) => setTimetableSettings({...timetableSettings, fontFamily: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs sm:text-sm"
+                >
+                  <option value="default">Default (System)</option>
+                  <option value="serif">Serif</option>
+                  <option value="monospace">Monospace</option>
+                  <option value="custom">Custom</option>
+                </select>
+                
+                {timetableSettings.fontFamily === 'custom' && (
+                  <input
+                    type="text"
+                    value={timetableSettings.customFont}
+                    onChange={(e) => setTimetableSettings({...timetableSettings, customFont: e.target.value})}
+                    placeholder="Enter font family name"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs"
+                  />
+                )}
+              </div>
+
+              {/* Theme Color */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">🎨 Theme Color</h4>
+                <div className="flex gap-2 flex-wrap">
+                  {['blue', 'green', 'purple', 'orange', 'pink', 'indigo', 'red', 'teal', 'cyan', 'amber'].map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setTimetableSettings({...timetableSettings, theme: color})}
+                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-${color}-500 ${
+                        timetableSettings.theme === color ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* View Mode */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">👀 View Mode</h4>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg ${
+                      viewMode === 'grid' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    <Grid className="w-4 h-4" />
+                    <span className="text-xs">Grid</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg ${
+                      viewMode === 'list' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    <List className="w-4 h-4" />
+                    <span className="text-xs">List</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => setAppearanceModal(false)}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition text-sm"
+              >
+                Apply Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import/Export Modal */}
+      {importExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 w-full max-w-md mx-2">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
+                📁 Import/Export
+              </h3>
+              <button
+                onClick={() => setImportExportModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="text-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-1">Import Timetable</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                  Upload a JSON file to import a timetable
+                </p>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+
+              <div className="text-center p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <Download className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <h4 className="font-semibold text-gray-800 dark:text-white mb-1">Export Timetable</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                  Download your timetable as a JSON file
+                </p>
+                <button
+                  onClick={handleExport}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-semibold transition"
+                >
+                  Export Now
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => setImportExportModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -472,15 +1325,24 @@ export default function TimetableSettings() {
             <span>Back to Schedule</span>
           </button>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white text-center sm:text-left flex-1 order-1 sm:order-2">
-            🕐 Timetable Creator
+            🕐 Ultimate Timetable Creator
           </h1>
-          <button
-            onClick={() => setSettingsModal(true)}
-            className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start order-3"
-          >
-            <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Settings</span>
-          </button>
+          <div className="flex gap-2 order-3">
+            <button
+              onClick={() => setSettingsModal(true)}
+              className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base"
+            >
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Settings</span>
+            </button>
+            <button
+              onClick={() => setAppearanceModal(true)}
+              className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-2 sm:py-3 rounded-xl shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm sm:text-base"
+            >
+              <Palette className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Appearance</span>
+            </button>
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -519,19 +1381,43 @@ export default function TimetableSettings() {
                 </button>
 
                 <button
-                  onClick={() => quickAddSlots('student')}
+                  onClick={() => setActivitiesModal(true)}
                   className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
                 >
+                  <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Manage Activities
+                </button>
+
+                <button
+                  onClick={() => quickAddSlots('student')}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
+                >
                   <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Quick Student Template
+                  Student Template
+                </button>
+
+                <button
+                  onClick={() => quickAddSlots('work')}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
+                >
+                  <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Work Template
                 </button>
 
                 <button
                   onClick={saveTimetable}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
                 >
                   <Save className="w-3 h-3 sm:w-4 sm:h-4" />
                   Save Timetable
+                </button>
+
+                <button
+                  onClick={() => setImportExportModal(true)}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-2 sm:py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg text-xs sm:text-sm"
+                >
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                  Import/Export
                 </button>
 
                 <button
@@ -561,8 +1447,14 @@ export default function TimetableSettings() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total Hours:</span>
+                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Custom Activities:</span>
                   <span className="font-semibold text-purple-600 dark:text-purple-400 text-xs sm:text-sm">
+                    {customActivities.filter(a => a.custom).length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">Total Hours:</span>
+                  <span className="font-semibold text-orange-600 dark:text-orange-400 text-xs sm:text-sm">
                     {(schedule.reduce((total, slot) => total + parseInt(slot.duration || 0), 0) / 60).toFixed(1)}
                   </span>
                 </div>
@@ -581,12 +1473,12 @@ export default function TimetableSettings() {
             <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 sm:p-6 text-white">
               <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">💡 Pro Tips</h3>
               <ul className="space-y-1 sm:space-y-2 text-xs text-blue-100">
-                <li>• Click on time to customize</li>
-                <li>• Use student template for quick setup</li>
-                <li>• Add custom activity names</li>
-                <li>• Use notes for details</li>
-                <li>• Adjust settings for 24-hour format</li>
-                <li>• Save frequently!</li>
+                <li>• Drag & drop to reorder slots</li>
+                <li>• Create custom activities</li>
+                <li>• Use templates for quick setup</li>
+                <li>• Export/import your timetables</li>
+                <li>• Customize appearance completely</li>
+                <li>• Enable advanced mode for CSS/JS</li>
               </ul>
             </div>
           </div>
@@ -602,7 +1494,7 @@ export default function TimetableSettings() {
                     🎯 Schedule Builder
                   </h2>
                   <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs sm:text-sm">
-                    Create and customize your daily routine - 24 hours available
+                    Create and customize your daily routine - Full 24-hour customization available
                   </p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -611,6 +1503,9 @@ export default function TimetableSettings() {
                   </span>
                   <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
                     {timetableSettings.militaryTime ? '24H' : '12H'} Format
+                  </span>
+                  <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                    {viewMode === 'grid' ? 'Grid View' : 'List View'}
                   </span>
                 </div>
               </div>
@@ -641,16 +1536,30 @@ export default function TimetableSettings() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3 sm:space-y-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
+                <div className={`space-y-3 sm:space-y-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar ${
+                  viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : ''
+                }`}>
                   {schedule.map((slot, index) => (
                     <div 
                       key={slot.id}
-                      className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-2xl p-3 sm:p-4 border-2 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300"
+                      className={`time-slot-item bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-2xl p-3 sm:p-4 border-2 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 ${
+                        isDragging && dragIndex === index ? 'opacity-50' : ''
+                      } ${viewMode === 'grid' ? 'h-fit' : ''}`}
+                      draggable={timetableSettings.enableDragDrop}
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
                     >
                       
                       {/* Slot Header */}
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
+                          {timetableSettings.enableDragDrop && (
+                            <div className="cursor-move text-gray-400 hover:text-gray-600">
+                              <GripVertical className="w-4 h-4" />
+                            </div>
+                          )}
                           <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
                             <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
                               {index + 1}
@@ -689,7 +1598,11 @@ export default function TimetableSettings() {
                       </div>
 
                       {/* Main Content - Responsive Grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+                      <div className={`grid gap-2 sm:gap-3 md:gap-4 ${
+                        viewMode === 'grid' 
+                          ? 'grid-cols-1' 
+                          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                      }`}>
                         
                         {/* Time Selection */}
                         <div className="space-y-1">
@@ -721,7 +1634,7 @@ export default function TimetableSettings() {
                         {/* Activity Selection */}
                         <div className="space-y-1">
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                            🎯 Activity Type
+                            {timetableSettings.showIcons ? "🎯 Activity Type" : "Activity Type"}
                           </label>
                           <select
                             value={slot.activity}
@@ -729,9 +1642,9 @@ export default function TimetableSettings() {
                             className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                           >
                             <option value="">Select Activity</option>
-                            {activities.map((activity) => (
+                            {customActivities.map((activity) => (
                               <option key={activity.name} value={activity.name}>
-                                {activity.icon} {activity.name}
+                                {timetableSettings.showIcons ? `${activity.icon} ` : ''}{activity.name}
                               </option>
                             ))}
                           </select>
@@ -752,18 +1665,20 @@ export default function TimetableSettings() {
                         </div>
 
                         {/* Duration */}
-                        <div className="space-y-1">
-                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                            ⏱️ Duration (min)
-                          </label>
-                          <input
-                            type="number"
-                            value={slot.duration}
-                            onChange={(e) => updateTimeSlot(index, 'duration', e.target.value)}
-                            placeholder="60"
-                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
-                          />
-                        </div>
+                        {timetableSettings.showDuration && (
+                          <div className="space-y-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                              ⏱️ Duration (min)
+                            </label>
+                            <input
+                              type="number"
+                              value={slot.duration}
+                              onChange={(e) => updateTimeSlot(index, 'duration', e.target.value)}
+                              placeholder="60"
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {/* Expanded Details */}
@@ -772,21 +1687,23 @@ export default function TimetableSettings() {
                           
                           {/* Priority & Flexibility */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
-                            <div className="space-y-1">
-                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                                🎯 Priority Level
-                              </label>
-                              <select
-                                value={slot.priority}
-                                onChange={(e) => updateTimeSlot(index, 'priority', e.target.value)}
-                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
-                              >
-                                <option value="low">Low Priority</option>
-                                <option value="medium">Medium Priority</option>
-                                <option value="high">High Priority</option>
-                                <option value="critical">Critical</option>
-                              </select>
-                            </div>
+                            {timetableSettings.showPriority && (
+                              <div className="space-y-1">
+                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                  🎯 Priority Level
+                                </label>
+                                <select
+                                  value={slot.priority}
+                                  onChange={(e) => updateTimeSlot(index, 'priority', e.target.value)}
+                                  className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
+                                >
+                                  <option value="low">Low Priority</option>
+                                  <option value="medium">Medium Priority</option>
+                                  <option value="high">High Priority</option>
+                                  <option value="critical">Critical</option>
+                                </select>
+                              </div>
+                            )}
                             
                             <div className="space-y-1">
                               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -802,21 +1719,64 @@ export default function TimetableSettings() {
                                 <span className="text-xs text-gray-700 dark:text-gray-300">Can be rescheduled</span>
                               </label>
                             </div>
+
+                            <div className="space-y-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {slot.isPrivate ? <Lock className="w-3 h-3 inline" /> : <Unlock className="w-3 h-3 inline" />} Privacy
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={slot.isPrivate}
+                                  onChange={(e) => updateTimeSlot(index, 'isPrivate', e.target.checked)}
+                                  className="rounded w-3 h-3"
+                                />
+                                <span className="text-xs text-gray-700 dark:text-gray-300">Private slot</span>
+                              </label>
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                🔔 Reminder
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={slot.reminder}
+                                  onChange={(e) => updateTimeSlot(index, 'reminder', e.target.checked)}
+                                  className="rounded w-3 h-3"
+                                />
+                                <span className="text-xs text-gray-700 dark:text-gray-300">Notify before</span>
+                              </label>
+                              {slot.reminder && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <input
+                                    type="number"
+                                    value={slot.reminderTime}
+                                    onChange={(e) => updateTimeSlot(index, 'reminderTime', e.target.value)}
+                                    className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
+                                  />
+                                  <span className="text-xs text-gray-700 dark:text-gray-300">minutes before</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {/* Notes */}
-                          <div className="space-y-1">
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                              📝 Notes & Details
-                            </label>
-                            <textarea
-                              value={slot.note}
-                              onChange={(e) => updateTimeSlot(index, 'note', e.target.value)}
-                              placeholder="Add specific details, goals, or reminders for this time slot..."
-                              rows="2"
-                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs resize-none"
-                            />
-                          </div>
+                          {timetableSettings.showNotes && (
+                            <div className="space-y-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                📝 Notes & Details
+                              </label>
+                              <textarea
+                                value={slot.note}
+                                onChange={(e) => updateTimeSlot(index, 'note', e.target.value)}
+                                placeholder="Add specific details, goals, or reminders for this time slot..."
+                                rows="2"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs resize-none"
+                              />
+                            </div>
+                          )}
 
                           {/* Color Theme */}
                           <div className="space-y-1">
@@ -828,18 +1788,56 @@ export default function TimetableSettings() {
                               onChange={(e) => updateTimeSlot(index, 'color', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
                             >
-                              {activities.map((activity) => (
-                                <option key={activity.color} value={activity.color}>
-                                  {activity.icon} {activity.name}
+                              {colorGradients.map((gradient) => (
+                                <option key={gradient} value={gradient}>
+                                  {gradient.split(' ')[0].replace('from-', '').charAt(0).toUpperCase() + gradient.split(' ')[0].replace('from-', '').slice(1)}
                                 </option>
                               ))}
                             </select>
                           </div>
 
+                          {/* Repeat Settings */}
+                          <div className="space-y-1">
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                              🔁 Repeat
+                            </label>
+                            <select
+                              value={slot.repeat}
+                              onChange={(e) => updateTimeSlot(index, 'repeat', e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs"
+                            >
+                              <option value="never">Never</option>
+                              <option value="daily">Daily</option>
+                              <option value="weekdays">Weekdays</option>
+                              <option value="weekends">Weekends</option>
+                              <option value="weekly">Weekly</option>
+                              <option value="monthly">Monthly</option>
+                            </select>
+                          </div>
+
+                          {/* Custom CSS */}
+                          {timetableSettings.enableAdvanced && (
+                            <div className="space-y-1">
+                              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                                💅 Custom CSS (Advanced)
+                              </label>
+                              <textarea
+                                value={slot.customCSS}
+                                onChange={(e) => updateTimeSlot(index, 'customCSS', e.target.value)}
+                                placeholder="Custom CSS for this slot only..."
+                                rows="2"
+                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-600 text-gray-800 dark:text-white text-xs font-mono resize-none"
+                              />
+                            </div>
+                          )}
+
                           {/* Preview */}
                           <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-2 sm:p-3">
                             <h4 className="font-medium text-gray-800 dark:text-white mb-1 text-xs">Preview:</h4>
-                            <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-r ${slot.color} text-white shadow-lg`}>
+                            <div 
+                              className={`p-2 sm:p-3 rounded-xl bg-gradient-to-r ${slot.color} text-white shadow-lg`}
+                              style={slot.customCSS ? { ...JSON.parse(`{${slot.customCSS}}`) } : {}}
+                            >
                               <div className="flex justify-between items-center">
                                 <div>
                                   <div className="font-semibold text-xs">
@@ -847,22 +1845,43 @@ export default function TimetableSettings() {
                                   </div>
                                   <div className="text-xs opacity-90">{slot.time}</div>
                                 </div>
-                                <div className="text-xs bg-black bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
-                                  {slot.duration} min
-                                </div>
+                                {timetableSettings.showDuration && (
+                                  <div className="text-xs bg-black bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
+                                    {slot.duration} min
+                                  </div>
+                                )}
                               </div>
-                              {slot.note && (
+                              {timetableSettings.showNotes && slot.note && (
                                 <div className="text-xs mt-1 opacity-90">{slot.note}</div>
                               )}
                               <div className="flex justify-between items-center mt-1">
-                                <span className="text-xs bg-white bg-opacity-20 px-1 sm:px-2 py-0.5 rounded capitalize">
-                                  {slot.priority}
-                                </span>
-                                {slot.isFlexible && (
-                                  <span className="text-xs bg-yellow-500 bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
-                                    Flexible
+                                {timetableSettings.showPriority && (
+                                  <span className="text-xs bg-white bg-opacity-20 px-1 sm:px-2 py-0.5 rounded capitalize">
+                                    {slot.priority}
                                   </span>
                                 )}
+                                <div className="flex gap-1">
+                                  {slot.isFlexible && (
+                                    <span className="text-xs bg-yellow-500 bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
+                                      Flexible
+                                    </span>
+                                  )}
+                                  {slot.isPrivate && (
+                                    <span className="text-xs bg-red-500 bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
+                                      Private
+                                    </span>
+                                  )}
+                                  {slot.reminder && (
+                                    <span className="text-xs bg-blue-500 bg-opacity-20 px-1 sm:px-2 py-0.5 rounded">
+                                      Reminder
+                                    </span>
+                                  )}
+                                  {slot.repeat !== 'never' && (
+                                    <span className="text-xs bg-green-500 bg-opacity-20 px-1 sm:px-2 py-0.5 rounded capitalize">
+                                      {slot.repeat}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -943,6 +1962,13 @@ export default function TimetableSettings() {
           .text-responsive {
             font-size: 0.875rem;
           }
+        }
+
+        /* Apply custom font if set */
+        .custom-font {
+          font-family: ${timetableSettings.fontFamily === 'custom' && timetableSettings.customFont 
+            ? timetableSettings.customFont 
+            : 'inherit'};
         }
       `}</style>
     </div>
